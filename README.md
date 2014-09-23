@@ -1,4 +1,4 @@
 Explore
 =======
 
-We three people, just want to create a good App
+We three people, just want to make a good App
