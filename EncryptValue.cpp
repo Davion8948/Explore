@@ -2,13 +2,13 @@
 #include "EncryptValue.h"
 
 template<class T>
-EncryptValue::EncryptValue(void)
+EncryptValue<T>::EncryptValue(void)
 {
 	setValue(0);
 }
 
 template<class T>
-EncryptValue::~EncryptValue(void)
+EncryptValue<T>::~EncryptValue(void)
 {
 }
 template<class T>
