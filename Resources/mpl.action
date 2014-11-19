@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>animations</key>
+	<dict>
+        <key>walk0</key>
+		<dict>
+			<key>delay</key>
+			<real>0.05</real>
+			<key>frames</key>
+			<array>
+				<string>mpl00.png</string>
+				<string>mpl01.png</string>
+                <string>mpl02.png</string>
+                <string>mpl03.png</string>
+			</array>
+		</dict>
+        <key>walk1</key>
+		<dict>
+			<key>delay</key>
+			<real>0.05</real>
+			<key>frames</key>
+			<array>
+				<string>mpl10.png</string>
+				<string>mpl11.png</string>
+                <string>mpl12.png</string>
+                <string>mpl13.png</string>
+			</array>
+		</dict>
+        <key>walk2</key>
+		<dict>
+			<key>delay</key>
+			<real>0.05</real>
+			<key>frames</key>
+			<array>
+				<string>mpl20.png</string>
+				<string>mpl21.png</string>
+                <string>mpl22.png</string>
+                <string>mpl23.png</string>
+			</array>
+		</dict>
+        <key>walk3</key>
+		<dict>
+			<key>delay</key>
+			<real>0.05</real>
+			<key>frames</key>
+			<array>
+				<string>mpl30.png</string>
+				<string>mpl31.png</string>
+                <string>mpl32.png</string>
+                <string>mpl33.png</string>
+			</array>
+		</dict>
+	</dict>
+</dict>
+</plist>

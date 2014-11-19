@@ -1,0 +1,14 @@
+1.写得比我想象中要好……可能掉的一些坑都没有掉进去，而且功能十分完善，我估计我自己也不一定能写成这样，有些是我完全没想到的。
+
+2.需要重载EncryptValue<T>(T val)，但是这里面有个坑，如何避免我已经忘记了，需要我去看看……
+
+3.把setValue设成private，因为我们已经重载了赋值操作，用户会奇怪直接赋值和setValue有何区别，好的接口不给用户任何质疑的机会。
+
+4.这条建议可能会造成一个坑，我还没有想好。因为setValue已经成为了private，根据对称性，和setValue一样的getValue没道理还是public。可以重载int operator ()()，就可以把EncryptValue<int>直接变成int，比如int x = some_encrypt_value。
+
+5.赋值操作符返回const EncryptValue<T>& 会比较高效一点，可以减少很多临时变量。
+  各个函数的EncryptValue<T>都变成const EncryptValue<T>&
+  由于getValue不会造成任何数据改变，所以把getValue的函数签名改为T getValue() const。
+  其它函数要不要这么改还有待研究……
+
+6.我们最终的目标是，让EncryptValue<int>完全支持int的所有操作，而且和int一样好用，给你一个变量，你都不知道是在操作的是EncryptInt还是int
