@@ -1,8 +1,8 @@
 #pragma once
-#include "Block.h"
+#include "MapObj.h"
 
 class Rock :
-	public Block, public DynamicCreation
+	public MapObj, public DynamicCreation
 {
 public:
 	Rock(void);
@@ -12,8 +12,10 @@ public:
 
 	virtual void config(const cocos2d::ValueMap& cfg);
 
-	virtual bool willPlayerEnter(Player* player);
-	virtual bool onPlayerSteping(Player* player);
-	virtual bool onPlayerFinished(Player* player);
+	virtual bool willPlayerEnter(Player* player) override;
+	virtual bool onPlayerSteping(Player* player) override;
+	virtual bool onPlayerFinished(Player* player) override;
+
+	virtual bool canUseBomb() override;
 };
 

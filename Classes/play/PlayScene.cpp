@@ -14,7 +14,13 @@ bool PlayScene::init()
 {
 	Return_False_If(!Scene::init());
 
-	addChild(MainLayer::create());
+	int mLevel = m_intent["mLevel"].asInt();
+	int vLevel = m_intent["vLevel"].asInt();
+
+	MainLayer* layer = MainLayer::create();
+	layer->setMainLevel(mLevel);
+	layer->startViceLevel(vLevel);
+	addChild(layer);
 
 	return true;
 }

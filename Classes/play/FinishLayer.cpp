@@ -1,6 +1,7 @@
 #include "FinishLayer.h"
 #include "MainLayer.h"
 #include "cocostudio/CocoStudio.h"
+#include "LevelData.h"
 using namespace cocostudio;
 using namespace ui;
 
@@ -14,12 +15,16 @@ bool FinishLayer::init()
 
 	Size win = CCDirector::getInstance()->getVisibleSize();
 	setPosition( (win-finish->getContentSize())/2 );
-
+	
 	for (int i=0; i<item_count; ++i)
 	{
 		m_pItems[i] = finish->getChildByName( sstr("item%d", i) );
 	}
-
+	dynamic_cast<Text*>(m_pItems[0]->getChildByName("num0"))->setString( to_string(LevelData::inst().getElapsedTime()) );
+	dynamic_cast<Text*>(m_pItems[1]->getChildByName("num1"))->setString( to_string(LevelData::inst().getCollectedCoin()) );
+	dynamic_cast<Text*>(m_pItems[2]->getChildByName("num2"))->setString( to_string(LevelData::inst().getKilledMonster()) );
+	dynamic_cast<Text*>(m_pItems[3]->getChildByName("num3"))->setString( to_string(LevelData::inst().getDestroyedTrap()) );
+	dynamic_cast<Text*>(m_pItems[4]->getChildByName("num4"))->setString( to_string(LevelData::inst().getOpenedDoor()) );
 	Button* btn = nullptr;
 	
 	btn = dynamic_cast<Button*>(finish->getChildByName("next"));
@@ -43,5 +48,5 @@ void FinishLayer::onBtnNextLevel( Ref*, Widget::TouchEventType type )
 {
 	Return_If(type != Widget::TouchEventType::ENDED);
 	//GameStateMgr::inst().change(gs_);
-	mainlayer->startLevel(0);
+	mainlayer->startNextLevel();
 }

@@ -46,7 +46,6 @@ void GameMap::onClick( const Point& pt )
 	if (m_bUsingBomb)
 	{
 		Index2 click = tmxToIndex2(pt);
-		//Index2 pos = tmxToIndex2(cocosToTMX(m_pPlayer->getPosition()));
 		vector<Index2> surround = getSurrounding(tmxToIndex2(cocosToTMX(m_pPlayer->getPosition())), 2);
 		for (Index2& x : surround)
 		{
@@ -84,7 +83,11 @@ void GameMap::onClick( const Point& pt )
 
 void GameMap::onLongTouches( const Point& pt )
 {
-
+	Index2 pos = tmxToIndex2(pt);
+	if (pos.first>0 && pos.first<m_objects.size()-1 && pos.second>0 && pos.second<m_objects[0].size()-1)
+	{
+		m_objects[pos.first][pos.second]->onFlagged();
+	}
 }
 
 bool GameMap::initWithTMXFile( const std::string& tmxFile )
@@ -120,7 +123,7 @@ bool GameMap::initWithTMXFile( const std::string& tmxFile )
 			float x = obj["x"].asFloat();
 			float y = obj["y"].asFloat();
 			Index2 pos = tmxToIndex2( cocosToTMX(Point(x, y)) );
-			m_objects[pos.first][pos.second]->addBy(obj);
+			m_objects[pos.first][pos.second]->pushObjBy(obj);
 		}
 	}	
 
@@ -149,7 +152,7 @@ bool GameMap::initWithTMXFile( const std::string& tmxFile )
 			int mine_count = 0;
 			for (auto&x : getSurrounding(Index2(r,c)))
 			{
-				if (Is_Trap(m_objects[x.first][x.second]->getState()))
+				if (m_objects[x.first][x.second]->isMine())
 				{
 					++mine_count;
 				}
@@ -189,28 +192,96 @@ Point GameMap::tmxToCocos( Point pt )
 
 list<GameMap::Index2> GameMap::getPath( const Index2& from, const Index2& to )
 {
+	struct AStarInfo
+	{
+		int g;
+		int h;
+		Index2 parent;
+		int f(){ return g+h; }
+		AStarInfo(int argg, int argh){
+			g = argg;
+			h = argh;
+			parent.first = parent.second = -1;
+		}
+	};
+	map<Index2, AStarInfo> opened;
+	map<Index2, AStarInfo> closed;
+	auto last_obj = opened.end();
+	opened.insert( make_pair(from, AStarInfo(0,0)) );
+	do
+	{
+		Break_If( opened.empty() );
+
+		int min_cost = INT_MAX;
+		Index2 curPos(-1,-1);
+		AStarInfo curInfo(INT_MAX, 0);
+		map<Index2, AStarInfo>::iterator cur;
+		for (map<Index2, AStarInfo>::iterator it = opened.begin(); it != opened.end(); ++it)
+		{
+			if (it->second.f() < curInfo.f())
+			{
+				curPos = it->first;
+				curInfo = it->second;
+				cur = it;
+			}
+		}
+		opened.erase(cur);
+		closed.insert( make_pair(curPos, curInfo) );
+
+		auto surround = getSurrounding(curPos, 1);
+		for (auto it = surround.begin(); it != surround.end(); ++it)
+		{
+			MapCell* cell = m_objects[it->first][it->second];
+			if ( cell->getAStarCost()==INT_MAX || closed.find(*it)!=closed.end() )
+			{
+				//do nothing
+			}
+			else if ( opened.find(*it) == opened.end() )
+			{
+				AStarInfo info( curInfo.g+loss(curPos,*it), loss(*it, to) );
+				info.parent = curPos;
+				opened.insert( make_pair(*it, info) );
+			}
+			else//已经在开启列表中，检查新的路径是否更好
+			{
+				auto has = opened.find(*it);
+				if (has->second.g > curInfo.g+loss(curPos,*it))
+				{
+					has->second.parent = curPos;
+					has->second.g = curInfo.g+loss(curPos,*it);
+				}
+			}
+		}
+		
+		last_obj = opened.find(to);
+		if (last_obj != opened.end())
+			break;
+
+	} while (true);
+
+	if (last_obj == opened.end())
+	{
+		return list<Index2>();
+	}
+
 	list<Index2> ret;
-	do 
+	ret.push_front( last_obj->first );
+	auto path = closed.find( last_obj->second.parent );
+	while (path != closed.end())
 	{
-		Break_If(from.first == to.first);
-		int rdiff = from.first<to.first ? 1 : -1;
-		for (int i=from.first+rdiff; i!=to.first+rdiff; i+=rdiff)
-		{
-			ret.push_back( make_pair(i, from.second) );
-		}
-	} while (false);
-
-	do 
-	{
-		Break_If(from.second == to.second);
-		int cdiff = from.second<to.second ? 1 : -1;
-		for (int i=from.second+cdiff; i!=to.second+cdiff; i+=cdiff)
-		{
-			ret.push_back( make_pair(to.first, i) );
-		}
-	} while (false);
-
+		ret.push_front(path->first);
+		path = closed.find( path->second.parent );
+	}
+	if (!ret.empty())
+		ret.pop_front();
 	return ret;
+}
+
+int GameMap::loss(const GameMap::Index2& arg1, const GameMap::Index2& arg2)
+{
+	int deltaX = abs(arg1.first-arg2.first);
+	int deltaY = abs(arg1.second-arg2.second);
+	return (min(deltaX,deltaY)*15 + abs(max(deltaX,deltaY)-min(deltaX,deltaY))*10);
 }
 
 void GameMap::stepPlayer()
@@ -274,17 +345,11 @@ std::vector<GameMap::Index2> GameMap::getSurrounding( const Index2& center, int 
 
 void GameMap::dig( const Index2& center )
 {
- 	int surround_mine = m_objects[center.first][center.second]->getSurroundMineCount();
-	Return_If(surround_mine!=0);
+	m_objects[center.first][center.second]->checkDig(m_pPlayer);
 
-	m_objects[center.first][center.second]->onPlayerSurround(m_pPlayer);
-
-	for (auto x : getSurrounding(center, 1))
+	for (auto x : getSurrounding(center, 2))
 	{
-		Continue_If(x.first==0 || x.first==getMapSize().height-1);
-		Continue_If(x.second==0 || x.second==getMapSize().width-1);
-		Continue_If(!Can_Expand(m_objects[x.first][x.second]->getState()));
-		dig(x);
+		m_objects[x.first][x.second]->checkDig(m_pPlayer);
 	}
 }
 
@@ -321,41 +386,44 @@ void GameMap::onKeyDown( EventKeyboard::KeyCode key, Event* )
 	onClick(cocosToTMX(cur));
 }
 
-void GameMap::onEffectHoe()
+bool GameMap::onEffectHoe()
 {
-	Return_If(m_bUsingHoe);
+	Return_False_If(m_bUsingHoe);
 
-	m_bUsingHoe = true;
 	Index2 pos = tmxToIndex2(cocosToTMX(m_pPlayer->getPosition()));
 	vector<Index2> surround = getSurrounding(pos, 1);
 	for (Index2& x : surround)
 	{
-		m_objects[x.first][x.second]->onEffectHoe(true, false);
+		bool ret = m_objects[x.first][x.second]->onEffectHoe(true, false);
+		m_bUsingHoe = ret||m_bUsingHoe;
 	}
+	return m_bUsingHoe;
 }
 
-void GameMap::onEffectBomb()
+bool GameMap::onEffectBomb()
 {
-	Return_If(m_bUsingBomb);
+	Return_False_If(m_bUsingBomb);
 
-	m_bUsingBomb = true;
 	Index2 pos = tmxToIndex2(cocosToTMX(m_pPlayer->getPosition()));
 	vector<Index2> surround = getSurrounding(pos, 1);
 	for (Index2& x : surround)
 	{
-		m_objects[x.first][x.second]->onEffectBomb(true, false);
+		bool ret = m_objects[x.first][x.second]->onEffectBomb(true, false);
+		m_bUsingBomb = ret||m_bUsingBomb;
 	}
+	return m_bUsingBomb;
 }
 
-void GameMap::onEffectMap()
+bool GameMap::onEffectMap()
 {
-	Return_If(m_bUsingMap);
+	Return_False_If(m_bUsingMap);
 
-	m_bUsingMap = true;
 	Index2 pos = tmxToIndex2(cocosToTMX(m_pPlayer->getPosition()));
 	vector<Index2> surround = getSurrounding(pos, 2);
 	for (Index2& x : surround)
 	{
-		m_objects[x.first][x.second]->onEffectMap(true);
+		bool ret = m_objects[x.first][x.second]->onEffectMap(true);
+		m_bUsingMap = ret||m_bUsingMap;
 	}
+	return m_bUsingMap;
 }

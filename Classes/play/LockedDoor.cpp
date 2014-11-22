@@ -1,6 +1,7 @@
 #include "LockedDoor.h"
 #include "GameMap.h"
-#include "UserData.h"
+#include "UDWhenPlay.h"
+#include "LevelData.h"
 
 ImplementDynamicCreation(LockedDoor);
 
@@ -21,7 +22,7 @@ void LockedDoor::config( const cocos2d::ValueMap& cfg )
 
 bool LockedDoor::willPlayerEnter( Player* player )
 {
-	int x = UserData::inst().getValue(UserData::udi_key);	
+	int x = UDWhenPlay::inst().getValue(udi_t::udi_key);	
 	Return_False_If(x==0);
 	return true;
 }
@@ -33,8 +34,14 @@ bool LockedDoor::onPlayerSteping( Player* player )
 
 bool LockedDoor::onPlayerFinished( Player* player )
 {
-	int x = UserData::inst().getValue(UserData::udi_key);
+	int x = UDWhenPlay::inst().getValue(udi_t::udi_key);
 	Return_True_If(x==0);
-	UserData::inst().setValue(UserData::udi_key, x-1);
+	UDWhenPlay::inst().setValue(udi_t::udi_key, x-1);
+	LevelData::inst().addOpenedDoor(1);
 	return false;
+}
+
+bool LockedDoor::canAStar()
+{
+	return UDWhenPlay::inst().getValue(udi_t::udi_key)!=0;
 }

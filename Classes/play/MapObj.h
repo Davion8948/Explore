@@ -44,10 +44,15 @@ public:
 	 */
 	virtual bool onPlayerSurround(Player* player);
 
-	int row() const;
-	int col() const;
-	void setRow(int row);
-	void setCol(int col);
+	/*
+	 *	是否可在其上使用道具
+	 */
+	virtual bool canUseHoe();
+	virtual bool canUseBomb();
+	virtual bool canUseMap();
+	virtual bool canUseFlag();
+
+	virtual bool canAStar();
 private:
 	int m_row;
 	int m_col;

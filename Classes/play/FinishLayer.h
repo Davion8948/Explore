@@ -13,6 +13,6 @@ public:
 protected:
 	void onBtnNextLevel(Ref*, ui::Widget::TouchEventType);
 private:
-	static const int item_count = 3;
+	static const int item_count = 5;
 	Node* m_pItems[item_count];
 };

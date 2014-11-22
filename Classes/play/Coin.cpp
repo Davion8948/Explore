@@ -1,6 +1,7 @@
 #include "Coin.h"
 #include "GameMap.h"
-#include "UserData.h"
+#include "UDWhenPlay.h"
+#include "LevelData.h"
 
 ImplementDynamicCreation(Coin);
 
@@ -45,6 +46,12 @@ bool Coin::onPlayerSteping( Player* player )
 
 bool Coin::onPlayerFinished( Player* player )
 {
-	UserData::inst().addValue(UserData::udi_coin, m_coin);
+	UDWhenPlay::inst().addValue(udi_t::udi_coin, m_coin);
+	LevelData::inst().addCollectedCoin(m_coin);
 	return false;
+}
+
+bool Coin::canAStar()
+{
+	return true;
 }

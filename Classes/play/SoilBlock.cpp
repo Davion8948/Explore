@@ -59,3 +59,28 @@ bool SoilBlock::onPlayerSurround(Player* player)
 	
 	return false;
 }
+
+bool SoilBlock::canUseHoe()
+{
+	return true;
+}
+
+bool SoilBlock::canUseBomb()
+{
+	return true;
+}
+
+bool SoilBlock::canUseMap()
+{
+	return true;
+}
+
+bool SoilBlock::canUseFlag()
+{
+	return true;
+}
+
+bool SoilBlock::canAStar()
+{
+	return true;
+}

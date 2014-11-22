@@ -42,3 +42,8 @@ bool LevelStair::onPlayerSurround(Player* player)
 {	
 	return true;
 }
+
+bool LevelStair::canAStar()
+{
+	return true;
+}

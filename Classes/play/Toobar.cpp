@@ -1,7 +1,8 @@
 #include "Toobar.h"
 #include "cocostudio/CocoStudio.h"
-#include "UserData.h"
+#include "UDWhenPlay.h"
 #include "GameMap.h"
+#include "MainLayer.h"
 
 using namespace cocostudio;
 using namespace ui;
@@ -42,27 +43,33 @@ bool Toolbar::init()
 	m_pCloverBtn = dynamic_cast<ui::Button*>(tool_widget->getChildByName("clover"));
 	m_pCoinNum = dynamic_cast<ui::TextAtlas*>(tool_widget->getChildByName("coin_num"));
 
-	m_pMap = dynamic_cast<ui::Button*>(tool_widget->getChildByName("map"));
-	m_pMap->addTouchEventListener( std::bind(&Toolbar::onClickMap, this, placeholders::_1, placeholders::_2) );
-	
-	m_pBomb = dynamic_cast<ui::Button*>(tool_widget->getChildByName("bomb"));
-	m_pBomb->addTouchEventListener( std::bind(&Toolbar::onClickBomb, this, placeholders::_1, placeholders::_2) );
-	
-	Button* btn = dynamic_cast<ui::Button*>(tool_widget->getChildByName("hoe"));
-	btn->addTouchEventListener( std::bind(&Toolbar::onClickHoe, this, placeholders::_1, placeholders::_2) );
+	ui::Button* pBtn = nullptr;
+	{
+		pBtn = dynamic_cast<ui::Button*>(tool_widget->getChildByName("map"));
+		pBtn->addTouchEventListener( std::bind(&Toolbar::onClickMap, this, placeholders::_1, placeholders::_2) );
+
+		pBtn = dynamic_cast<ui::Button*>(tool_widget->getChildByName("bomb"));
+		pBtn->addTouchEventListener( std::bind(&Toolbar::onClickBomb, this, placeholders::_1, placeholders::_2) );
+
+		pBtn = dynamic_cast<ui::Button*>(tool_widget->getChildByName("hoe"));
+		pBtn->addTouchEventListener( std::bind(&Toolbar::onClickHoe, this, placeholders::_1, placeholders::_2) );
+	}
+
+	int level = mainlayer->getCurrentLevel();
+	dynamic_cast<TextAtlas*>(tool_widget->getChildByName("level"))->setString(to_string(level+1));
+
 	refreshDisplay();
 	return true;
 }
 
 void Toolbar::refreshDisplay()
 {
-	setCoin(UserData::inst().getValue(UserData::udi_coin));
+	setCoin(UDWhenPlay::inst().getValue(udi_t::udi_coin));
 	for (int i=prop_heart; i<prop_count; ++i)
 	{
-		setProperty((PropType)i, UserData::inst().getValue((UserData::UserDataIndex)i));
+		setProperty((PropType)i, UDWhenPlay::inst().getValue((udi_t)i));
 	}
-	setClover(UserData::inst().getValue(UserData::udi_clover));
-
+	setClover(UDWhenPlay::inst().getValue(udi_t::udi_clover));
 }
 
 void Toolbar::setClover( int val )
@@ -85,26 +92,32 @@ void Toolbar::setProperty( PropType prop_tag, int val )
 void Toolbar::onClickHoe( Ref* target, cocos2d::ui::Widget::TouchEventType type )
 {
 	Return_If(type != cocos2d::ui::Widget::TouchEventType::ENDED);
-	int x = UserData::inst().getValue(UserData::udi_hoe);
+	int x = UDWhenPlay::inst().getValue(udi_t::udi_hoe);
 	Return_If(x==0);
-	UserData::inst().setValue(UserData::udi_hoe, x-1);
-	gamemap->onEffectHoe();
+	if (gamemap->onEffectHoe())
+	{
+		UDWhenPlay::inst().setValue(udi_t::udi_hoe, x-1);
+	}
 }
 
 void Toolbar::onClickBomb( Ref* target, cocos2d::ui::Widget::TouchEventType type )
 {
 	Return_If(type != cocos2d::ui::Widget::TouchEventType::ENDED);
-	int x = UserData::inst().getValue(UserData::udi_bomb);
+	int x = UDWhenPlay::inst().getValue(udi_t::udi_bomb);
 	Return_If(x==0);
-	UserData::inst().setValue(UserData::udi_bomb, x-1);
-	gamemap->onEffectBomb();
+	if (gamemap->onEffectBomb())
+	{
+		UDWhenPlay::inst().setValue(udi_t::udi_bomb, x-1);
+	}
 }
 
 void Toolbar::onClickMap( Ref* target, cocos2d::ui::Widget::TouchEventType type )
 {
 	Return_If(type != cocos2d::ui::Widget::TouchEventType::ENDED);
-	int x = UserData::inst().getValue(UserData::udi_map);
+	int x = UDWhenPlay::inst().getValue(udi_t::udi_map);
 	Return_If(x==0);
-	UserData::inst().setValue(UserData::udi_map, x-1);
-	gamemap->onEffectMap();
+	if (gamemap->onEffectMap())
+	{
+		UDWhenPlay::inst().setValue(udi_t::udi_map, x-1);
+	}
 }

@@ -1,6 +1,6 @@
 #pragma once
 #include "mapobj.h"
-#include "UserData.h"
+#include "UDWhenPlay.h"
 
 class Prop :
 	public MapObj, public DynamicCreation
@@ -17,8 +17,9 @@ public:
 	virtual bool onPlayerSteping(Player* player);
 	virtual bool onPlayerFinished(Player* player);
 
+	virtual bool canAStar() override;
 private:
-	UserData::UserDataIndex m_type;
+	udi_t m_type;
 	string m_texture;
 };
 

@@ -1,11 +1,12 @@
 #include "MapCell.h"
-#include "Trap.h"
-#include "Block.h"
 #include "Player.h"
+#include "Trap.h"
+#include "LevelData.h"
 
 MapCell::MapCell( void )
 	:m_pDisplayNumber(nullptr)
-	,m_type(tNone)
+	,m_isMine(false)
+	,m_isFlagged(false)
 {
 
 }
@@ -22,27 +23,53 @@ bool MapCell::init()
 	return true;
 }
 
-void MapCell::addBy( const cocos2d::ValueMap& data )
+void MapCell::pushObjBy( const cocos2d::ValueMap& data )
 {
 	const string& type = data.at("type").asString();
 	MapObj* obj = MapObj::create(type);
 	obj->config(data);
 
-	if (dynamic_cast<Trap*>(obj) != nullptr)
-	{
-		m_type |= tTrap;
-	}
-	if (dynamic_cast<Block*>(obj) != nullptr)
-	{
-		m_type |= tBlock;
-	}
-
-	m_objs.push_back(obj);
+	m_objs.push_front(obj);
 	addChild(obj);
+
+	if (!m_isMine)
+	{
+		m_isMine = (dynamic_cast<Trap*>(obj)!=nullptr);
+	}
+}
+
+bool MapCell::isMine()
+{
+	return m_isMine;
+}
+
+void MapCell::setSurroundMineCount( int num )
+{
+	m_surroundMineCount = num;
+
+	refreshDisplay();
+}
+
+void MapCell::onFlagged()
+{
+	Return_If(m_objs.empty());
+	Return_If(!m_objs.front()->canUseFlag());
+	m_isFlagged = !m_isFlagged;
+	static const int tag = 0x04;
+	if (m_isFlagged)
+	{
+		addChild(Sprite::create("flag.png"), 0, tag);
+	}
+	else
+	{
+		removeChildByTag(tag);
+	}
 }
 
 bool MapCell::checkPlayerEnter( Player* player )
 {
+	Return_False_If(m_isFlagged);
+
 	bool can = true;
 	for (MapObj* obj : m_objs)
 	{
@@ -70,9 +97,11 @@ bool MapCell::checkPlayerSteping( Player* player )
 
 void MapCell::checkPlayerFinished( Player* player )
 {
+	Return_If(m_isFlagged);
+
 	for (auto& obj : m_objs)
 	{
-		Continue_If(nullptr==obj);
+		CCAssert(nullptr!=obj, "");
 		if (!obj->onPlayerFinished(player))
 		{
 			this->removeChild(obj, true);
@@ -81,13 +110,15 @@ void MapCell::checkPlayerFinished( Player* player )
 	}
 
 	m_objs.remove_if( [](MapObj* obj)->bool{ return obj==nullptr;} );
-	m_type &= ~tBlock;
 	refreshDisplay();
 }
 
-void MapCell::onPlayerSurround(Player* player)
+void MapCell::checkDig(Player* player)
 {
-	Return_If( Is_Trap(m_type) && Is_Block(m_type) );
+	Return_If( m_objs.empty() );
+	Return_If( m_surroundMineCount!=0 );
+	Return_If( isMine() );
+	Return_If( m_isFlagged );
 
 	for (auto& obj : m_objs)
 	{
@@ -99,43 +130,7 @@ void MapCell::onPlayerSurround(Player* player)
 	}
 	m_objs.remove_if( [](MapObj* obj)->bool{ return obj==nullptr;} );
 
-	m_type &= ~tBlock;
 	refreshDisplay();
-}
-
-// void MapCell::push_top( MapObj* obj )
-// {
-// 	m_objs.push_back(obj);
-// 	addChild(obj);
-// }
-// 
-// void MapCell::remove( MapObj* obj_to_del )
-// {
-// 	for (auto& obj : m_objs)
-// 	{
-// 		if (obj==obj_to_del)
-// 		{
-// 			this->removeChild(obj, true);
-// 		}
-// 	}
-// 	m_objs.remove(obj_to_del);
-// }
-
-int MapCell::getSurroundMineCount() const
-{
-	return m_surroundMineCount;
-}
-
-void MapCell::setSurroundMineCount( int num )
-{
-	m_surroundMineCount = num;
-
-	refreshDisplay();
-}
-
-CellState MapCell::getState() const
-{
-	return (CellState)m_type;
 }
 
 void MapCell::refreshDisplay()
@@ -160,10 +155,13 @@ void MapCell::refreshDisplay()
 	}
 }
 
-void MapCell::onEffectHoe( bool start_or_end, bool bUse )
+bool MapCell::onEffectHoe( bool start_or_end, bool bUse )
 {
-	Return_If(m_objs.empty());
-	static const int tag = rand();
+	Return_False_If(m_objs.empty());
+	Return_False_If(!m_objs.front()->canUseHoe());
+	Return_False_If( m_isFlagged );
+
+	static const int tag = 0x01;
 	if (start_or_end)
 	{
 		Sprite* sp = Sprite::create();
@@ -180,19 +178,23 @@ void MapCell::onEffectHoe( bool start_or_end, bool bUse )
 	}
 	else
 	{
-		if (bUse && getChildByTag(tag)!=nullptr)
+		if (bUse)
 		{
-			removeChild(m_objs.back(), true);
-			m_objs.pop_back();
+			removeChild(m_objs.front(), true);
+			m_objs.pop_front();
 		}
 		removeChildByTag(tag);
 	}
+	return true;
 }
 
-void MapCell::onEffectBomb( bool start_or_end, bool bUse )
+bool MapCell::onEffectBomb( bool start_or_end, bool bUse )
 {
-	Return_If(m_objs.empty());
-	static const int tag = rand();
+	Return_False_If(m_objs.empty());
+	Return_False_If(!m_objs.front()->canUseBomb());
+	Return_False_If( m_isFlagged );
+
+	static const int tag = 0x02;
 	if (start_or_end)
 	{
 		Sprite* sp = Sprite::create();
@@ -209,29 +211,54 @@ void MapCell::onEffectBomb( bool start_or_end, bool bUse )
 	}
 	else
 	{
-		if (bUse && getChildByTag(tag)!=nullptr)
+		if (bUse)
 		{
-			removeChild(m_objs.back(), true);
-			m_objs.pop_back();
+			for (auto x : m_objs)
+				removeChild(x, true);
+			m_objs.clear();
 		}
 		removeChildByTag(tag);
+
+		if (isMine())
+		{
+			LevelData::inst().addDestroyedTrap(1);
+		}
 	}
+	return true;
 }
 
-void MapCell::onEffectMap(bool start_or_end)
+bool MapCell::onEffectMap(bool start_or_end)
 {
-	Return_If(m_objs.empty());
-	static const int tag = rand();
+	Return_False_If(m_objs.empty());
+	Return_False_If(!m_objs.front()->canUseMap());
+	Return_False_If( m_isFlagged );
+
+	static const int tag = 0x03;
 	if (start_or_end)
 	{
 		Sequence* seq = Sequence::createWithTwoActions( FadeTo::create(1,0), FadeTo::create(1,255) );
 		RepeatForever* rep = RepeatForever::create(seq);
 		rep->setTag(tag);
-		m_objs.back()->runAction( rep );
+		m_objs.front()->runAction( rep );
 	}
 	else
 	{
-		m_objs.back()->setOpacity(255);
-		m_objs.back()->stopActionByTag(tag);
+		m_objs.front()->setOpacity(255);
+		m_objs.front()->stopActionByTag(tag);
+	}
+
+	return true;
+}
+
+int MapCell::getAStarCost()
+{
+	Return_Null_If(m_objs.empty());
+	if ( m_objs.front()->canAStar() )
+	{
+		return 0;
+	}
+	else
+	{
+		return INT_MAX;
 	}
 }

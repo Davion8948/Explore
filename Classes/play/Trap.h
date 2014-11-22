@@ -9,5 +9,7 @@ public:
 	virtual ~Trap(void) = 0;
 
 	virtual bool onPlayerFinished(Player* player) override;
+
+	virtual bool canUseFlag() override;
 };
 

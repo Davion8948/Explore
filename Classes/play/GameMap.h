@@ -19,9 +19,12 @@ public:
 	void onClick(const Point& pt);
 	void onLongTouches(const Point& pt);
 	
-	void onEffectHoe();
-	void onEffectBomb();
-	void onEffectMap();
+	/*
+	 *	返回true表示成功执行
+	 */
+	bool onEffectHoe();
+	bool onEffectBomb();
+	bool onEffectMap();
 protected:
 	virtual bool initWithTMXFile(const std::string& tmxFile);
 
@@ -33,6 +36,7 @@ protected:
 	Point tmxToCocos(Point pt);
 
 	list<Index2> getPath(const Index2& from, const Index2& to);
+	int loss(const Index2& arg1, const Index2& arg2);
 
 	void stepPlayer();
 	void onPlayerFinishOneStep(const Index2& index, MoveStatus ms);

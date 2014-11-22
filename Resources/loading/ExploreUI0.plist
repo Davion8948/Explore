@@ -61,44 +61,6 @@
 				<key>offsetY</key>
 				<real>0</real>
 			</dict>
-			<key>20141110/登入界面/01up.png</key>
-			<dict>
-				<key>width</key>
-				<integer>85</integer>
-				<key>height</key>
-				<integer>81</integer>
-				<key>originalWidth</key>
-				<integer>85</integer>
-				<key>originalHeight</key>
-				<integer>81</integer>
-				<key>x</key>
-				<integer>378</integer>
-				<key>y</key>
-				<integer>642</integer>
-				<key>offsetX</key>
-				<real>0</real>
-				<key>offsetY</key>
-				<real>0</real>
-			</dict>
-			<key>20141110/登入界面/01down.png</key>
-			<dict>
-				<key>width</key>
-				<integer>85</integer>
-				<key>height</key>
-				<integer>81</integer>
-				<key>originalWidth</key>
-				<integer>85</integer>
-				<key>originalHeight</key>
-				<integer>81</integer>
-				<key>x</key>
-				<integer>465</integer>
-				<key>y</key>
-				<integer>642</integer>
-				<key>offsetX</key>
-				<real>0</real>
-				<key>offsetY</key>
-				<real>0</real>
-			</dict>
 			<key>20141110/登入界面/03up.png</key>
 			<dict>
 				<key>width</key>
@@ -110,7 +72,7 @@
 				<key>originalHeight</key>
 				<integer>83</integer>
 				<key>x</key>
-				<integer>552</integer>
+				<integer>378</integer>
 				<key>y</key>
 				<integer>642</integer>
 				<key>offsetX</key>
@@ -129,7 +91,7 @@
 				<key>originalHeight</key>
 				<integer>83</integer>
 				<key>x</key>
-				<integer>641</integer>
+				<integer>467</integer>
 				<key>y</key>
 				<integer>642</integer>
 				<key>offsetX</key>
@@ -148,7 +110,7 @@
 				<key>originalHeight</key>
 				<integer>94</integer>
 				<key>x</key>
-				<integer>730</integer>
+				<integer>556</integer>
 				<key>y</key>
 				<integer>642</integer>
 				<key>offsetX</key>
@@ -167,7 +129,7 @@
 				<key>originalHeight</key>
 				<integer>94</integer>
 				<key>x</key>
-				<integer>826</integer>
+				<integer>652</integer>
 				<key>y</key>
 				<integer>642</integer>
 				<key>offsetX</key>
@@ -186,7 +148,7 @@
 				<key>originalHeight</key>
 				<integer>94</integer>
 				<key>x</key>
-				<integer>922</integer>
+				<integer>748</integer>
 				<key>y</key>
 				<integer>642</integer>
 				<key>offsetX</key>
@@ -205,9 +167,9 @@
 				<key>originalHeight</key>
 				<integer>94</integer>
 				<key>x</key>
-				<integer>0</integer>
+				<integer>844</integer>
 				<key>y</key>
-				<integer>738</integer>
+				<integer>642</integer>
 				<key>offsetX</key>
 				<real>0</real>
 				<key>offsetY</key>
@@ -224,7 +186,7 @@
 				<key>originalHeight</key>
 				<integer>94</integer>
 				<key>x</key>
-				<integer>96</integer>
+				<integer>0</integer>
 				<key>y</key>
 				<integer>738</integer>
 				<key>offsetX</key>
@@ -243,7 +205,7 @@
 				<key>originalHeight</key>
 				<integer>94</integer>
 				<key>x</key>
-				<integer>192</integer>
+				<integer>96</integer>
 				<key>y</key>
 				<integer>738</integer>
 				<key>offsetX</key>
@@ -262,7 +224,7 @@
 				<key>originalHeight</key>
 				<integer>94</integer>
 				<key>x</key>
-				<integer>288</integer>
+				<integer>192</integer>
 				<key>y</key>
 				<integer>738</integer>
 				<key>offsetX</key>
@@ -281,7 +243,7 @@
 				<key>originalHeight</key>
 				<integer>94</integer>
 				<key>x</key>
-				<integer>384</integer>
+				<integer>288</integer>
 				<key>y</key>
 				<integer>738</integer>
 				<key>offsetX</key>
@@ -300,7 +262,7 @@
 				<key>originalHeight</key>
 				<integer>94</integer>
 				<key>x</key>
-				<integer>480</integer>
+				<integer>384</integer>
 				<key>y</key>
 				<integer>738</integer>
 				<key>offsetX</key>
@@ -319,45 +281,7 @@
 				<key>originalHeight</key>
 				<integer>94</integer>
 				<key>x</key>
-				<integer>576</integer>
-				<key>y</key>
-				<integer>738</integer>
-				<key>offsetX</key>
-				<real>0</real>
-				<key>offsetY</key>
-				<real>0</real>
-			</dict>
-			<key>20141110/登入界面/09up.png</key>
-			<dict>
-				<key>width</key>
-				<integer>94</integer>
-				<key>height</key>
-				<integer>94</integer>
-				<key>originalWidth</key>
-				<integer>94</integer>
-				<key>originalHeight</key>
-				<integer>94</integer>
-				<key>x</key>
-				<integer>672</integer>
-				<key>y</key>
-				<integer>738</integer>
-				<key>offsetX</key>
-				<real>0</real>
-				<key>offsetY</key>
-				<real>0</real>
-			</dict>
-			<key>20141110/登入界面/09down.png</key>
-			<dict>
-				<key>width</key>
-				<integer>94</integer>
-				<key>height</key>
-				<integer>94</integer>
-				<key>originalWidth</key>
-				<integer>94</integer>
-				<key>originalHeight</key>
-				<integer>94</integer>
-				<key>x</key>
-				<integer>768</integer>
+				<integer>480</integer>
 				<key>y</key>
 				<integer>738</integer>
 				<key>offsetX</key>

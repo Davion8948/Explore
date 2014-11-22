@@ -12,7 +12,7 @@ public:
 
 	virtual bool init() override;
 
-	friend class UserData;
+	friend class UDWhenPlay;
 
 private:
 	void setClover(int val);
@@ -48,6 +48,6 @@ private:
 	cocos2d::ui::Button* m_pCloverBtn;
 	cocos2d::ui::TextAtlas* m_pCoinNum;
 
-	cocos2d::ui::Button* m_pMap;
-	cocos2d::ui::Button* m_pBomb;
+	//cocos2d::ui::Button* m_pMap;
+	//cocos2d::ui::Button* m_pBomb;
 };

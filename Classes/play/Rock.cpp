@@ -31,3 +31,8 @@ bool Rock::onPlayerFinished( Player* player )
 {
 	return true;
 }
+
+bool Rock::canUseBomb()
+{
+	return true;
+}

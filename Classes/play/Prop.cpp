@@ -1,6 +1,6 @@
 #include "Prop.h"
 #include "GameMap.h"
-#include "UserData.h"
+#include "UDWhenPlay.h"
 
 ImplementDynamicCreation(Prop);
 
@@ -17,14 +17,14 @@ void Prop::config( const cocos2d::ValueMap& cfg )
 {	
 	MapObj::config(cfg);
 	safe_assign(m_texture, cfg, "texture");
-	map<string,UserData::UserDataIndex> data;
-	data.insert( make_pair("heart.png", UserData::udi_heart) );
-	data.insert( make_pair("shield.png", UserData::udi_shield) );
-	data.insert( make_pair("key.png", UserData::udi_key) );
-	data.insert( make_pair("arrow.png", UserData::udi_arrow) );
-	data.insert( make_pair("hoe.png", UserData::udi_hoe) );
-	data.insert( make_pair("bomb.png", UserData::udi_bomb) );
-	data.insert( make_pair("map.png", UserData::udi_map) );
+	map<string,udi_t> data;
+	data.insert( make_pair("heart.png", udi_t::udi_heart) );
+	data.insert( make_pair("shield.png", udi_t::udi_shield) );
+	data.insert( make_pair("key.png", udi_t::udi_key) );
+	data.insert( make_pair("arrow.png", udi_t::udi_arrow) );
+	data.insert( make_pair("hoe.png", udi_t::udi_hoe) );
+	data.insert( make_pair("bomb.png", udi_t::udi_bomb) );
+	data.insert( make_pair("map.png", udi_t::udi_map) );
 	m_type = data.at(m_texture);
 }
 
@@ -52,6 +52,11 @@ bool Prop::onPlayerSteping( Player* player )
 
 bool Prop::onPlayerFinished( Player* player )
 {
-	UserData::inst().addValue(m_type, 1);
+	UDWhenPlay::inst().addValue(m_type, 1);
 	return false;
+}
+
+bool Prop::canAStar()
+{
+	return true;
 }

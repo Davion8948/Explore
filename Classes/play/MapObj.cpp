@@ -60,6 +60,31 @@ bool MapObj::onPlayerSurround(Player* player)
 	return true;
 }
 
+bool MapObj::canUseHoe()
+{
+	return false;
+}
+
+bool MapObj::canUseBomb()
+{
+	return false;
+}
+
+bool MapObj::canUseMap()
+{
+	return false;
+}
+
+bool MapObj::canUseFlag()
+{
+	return false;
+}
+
+bool MapObj::canAStar()
+{
+	return false;
+}
+
 // 
 // int MapObj::row() const
 // {
