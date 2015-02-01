@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"/>
+
+<plist version="1.0">
+    <dict>
+        <key>return0</key>
+        <string>您确定要返回吗？</string>
+        <key>return1</key>
+        <string>您将丢失当前关卡的所有进度！</string>
+		<key>return2</key>
+		<string>您确定要退出吗？</string>
+    </dict>
+</plist>

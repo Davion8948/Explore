@@ -1,15 +1,15 @@
 #include "AppDelegate.h"
 #include "HelloWorldScene.h"
 #include "play/PlayScene.h"
-#include "loading/LoadingScene.h"
+#include "ud/UserDataMgr.h"
+#include "loading/LogoScene.h"
 USING_NS_CC;
 
 AppDelegate::AppDelegate() {
 
 }
 
-AppDelegate::~AppDelegate() 
-{
+AppDelegate::~AppDelegate() {
 }
 
 bool AppDelegate::applicationDidFinishLaunching() {
@@ -18,10 +18,10 @@ bool AppDelegate::applicationDidFinishLaunching() {
     auto glview = director->getOpenGLView();
     if(!glview) {
         glview = GLView::create("My Game");
-		glview->setFrameSize(480*2, 320*2);
 		director->setOpenGLView(glview);
-		glview->setDesignResolutionSize(480*2, 320*2, ResolutionPolicy::SHOW_ALL);
+		glview->setFrameSize(480*2, 320*2);
     }
+	glview->setDesignResolutionSize(480*2, 320*2, ResolutionPolicy::FIXED_WIDTH);
 
     // turn on display FPS
 //     director->setDisplayStats(true);
@@ -29,9 +29,15 @@ bool AppDelegate::applicationDidFinishLaunching() {
     // set FPS. the default value is 1.0/60 if you don't call this
     director->setAnimationInterval(1.0 / 60);
 
-    // create a scene. it's an autorelease object
-	//auto scene = HelloWorld::createScene();
-	auto scene = LoadingScene::create();
+
+	{
+		srand(time(0));
+		UserDataMgr::inst().loadFromDisk();
+		UserDataMgr::inst().setValue(UserDataMgr::udi_bomb, 10);
+	}
+
+ 	auto scene = LogoScene::create();
+    director->runWithScene(scene);
 
     // run
     director->runWithScene(scene);

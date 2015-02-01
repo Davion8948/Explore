@@ -16,7 +16,7 @@ public:
 	virtual bool onPlayerSteping(Player* player) override;
 	virtual bool onPlayerFinished(Player* player) override;
 
-	virtual bool canAStar() override;
+	virtual ObjAttr getAttr() override;
 private:
 };
 

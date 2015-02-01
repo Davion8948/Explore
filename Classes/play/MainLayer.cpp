@@ -1,15 +1,19 @@
 #include "MainLayer.h"
 #include "GameMap.h"
 #include "Player.h"
-#include "Toobar.h"
+#include "Toolbar.h"
 #include "FinishLayer.h"
 #include "UDWhenPlay.h"
 #include "LevelData.h"
 #include "ShopLayer.h"
 #include "ud/LevelDataMgr.h"
+#include "ui/ConfirmLayer.h"
+#include "loading/LoadingScene.h"
+#include "loading/MainLevelScene.h"
 
 MainLayer::MainLayer(void)
-	:m_bCurLongTouchEnd(true)
+	:m_touchingPoint(-1,-1)
+	,m_longTouchingTimeCount(0)
 	,m_mLevel(-1)
 	,m_vLevel(-1)
 {
@@ -38,11 +42,24 @@ bool MainLayer::init()
 	CCAssert(mainlayer==nullptr, "");
 	mainlayer = this;
 
-	setCascadeColorEnabled(true);
-
 	GameStateMgr::inst().change(gs_playing);
 
+	scheduleUpdate();
+
 	return true;
+}
+
+void MainLayer::update( float delta )
+{
+	if (m_touchingPoint != Point(-1,-1))
+	{
+		m_longTouchingTimeCount += delta;
+		if (m_longTouchingTimeCount >= 0.6f)
+		{
+			gamemap->onLongTouches( convertToTileCoordinate(m_touchingPoint) );
+			m_touchingPoint.set(-1, -1);
+		}
+	}
 }
 
 void MainLayer::onStateChanged( GameState gs )
@@ -65,14 +82,30 @@ void MainLayer::onStateChanged( GameState gs )
 
 			UserDataMgr::inst().setValue(udi_t::udi_shield, 0);
 			UserDataMgr::inst().setValue(udi_t::udi_heart, 1);
+			playEffect(PlayerLose);
+			playEffect(LevelLose);
 		}
  		break;
 	case gs_win:
 		{
-			runAction( Sequence::create( DelayTime::create(1), CallFunc::create( [=](){
-				addChild(FinishLayer::create());
-			}), nullptr));
 			UDWhenPlay::inst().commit();
+			playEffect(PlayerWin);
+			playEffect(LevelWin);
+
+			if (m_vLevel<9)
+			{
+				runAction( Sequence::create( DelayTime::create(1), CallFunc::create( [=](){
+					addChild(FinishLayer::create());
+				}), nullptr));  				
+			}
+			else
+			{
+				auto ret = CallFunc::create([](){
+					Scene* scene = MainLevelScene::create();//TransitionMoveInL::create(1, MainLevelScene::create());
+					Director::getInstance()->replaceScene( scene );
+				});
+				runAction( Sequence::createWithTwoActions(DelayTime::create(3), ret) );
+			}
 		}		
 		break;
 	default:
@@ -82,43 +115,70 @@ void MainLayer::onStateChanged( GameState gs )
 
 void MainLayer::onTouchesBegan( const std::vector<Touch*>& touches, Event *unused_event )
 {
-	m_startTouchTime = time(0);
+	Return_If(nullptr != getTopLayer());
+
+	m_longTouchingTimeCount = 0;
+	m_touchingPoint = touches.front()->getLocation();
 }
 
 void MainLayer::onTouchesMoved( const std::vector<Touch*>& touches, Event *unused_event )
 {
-	int cur = time(0);
-	if (cur-m_startTouchTime>=1 && m_bCurLongTouchEnd)
-	{
-		m_bCurLongTouchEnd = false;
-		gamemap->onLongTouches(convertToTileCoordinate(touches.front()->getLocation()));
-	}
+	//Return_If(nullptr != getTopLayer());
+	Return_If(m_touchingPoint == Point(-1,-1));
+	m_touchingPoint = touches.front()->getLocation();
 }
 
 void MainLayer::onTouchesEnded( const std::vector<Touch*>& touches, Event *unused_event )
 {
+	if (nullptr != getTopLayer())
+	{
+		removeTopLayer();
+		playEffect(ClickButton);
+		return;
+	}
+
 	Return_If(GameStateMgr::inst().curState() != gs_playing);
 	Point dstPoint = convertToTileCoordinate(touches.front()->getLocation());
-	if (m_bCurLongTouchEnd)
+	if (m_touchingPoint != Point(-1,-1))
 	{
 		gamemap->onClick(dstPoint);
+		m_touchingPoint.set(-1, -1);
 	}
 	else
 	{
-		m_bCurLongTouchEnd = true;
+		CCLOG("m_touchingPoint is (-1,-1)");
 	}
 }
 
 void MainLayer::onKeyReleased( EventKeyboard::KeyCode keyCode, Event* event )
 {
 	Return_If(keyCode != EventKeyboard::KeyCode::KEY_ESCAPE);
+	Return_If(GameStateMgr::inst().curState()==gs_win || GameStateMgr::inst().curState()==gs_dead);
 	Layer* top = getTopLayer();
 	if (top == nullptr)
 	{
-		popLayer( ShopLayer::create() );
+		string tipID = "return0";
+		if (LevelData::inst().getCollectedCoin()!=0 ||
+			LevelData::inst().getDestroyedTrap()!=0 ||
+			LevelData::inst().getOpenedDoor()!=0 ||
+			LevelData::inst().getKilledMonster()!=0)
+		{
+			tipID = "return1";
+		}
+		ConfirmLayer* layer = ConfirmLayer::create(tipID.c_str(), [=](){
+ 			Scene* scene = TransitionPageTurn::create(1, LoadingScene::create(), false);
+ 			Director::getInstance()->replaceScene( scene );
+			//this->restartCurrentLevel();
+		}, [=](){
+			runAction( CallFunc::create( std::bind(&MainLayer::removeTopLayer,this) ) );
+		});
+
+		playEffect(ClickButton);
+		popLayer( layer );
 	}
 	else
 	{
+		playEffect(ClickButton);
 		removeTopLayer();
 	}
 }
@@ -127,7 +187,7 @@ Point MainLayer::convertToTileCoordinate( Point pt )
 {
 	Rect rc = gamemap->getBoundingBox();
 	pt.x -= rc.origin.x;
-	pt.y = rc.size.height + rc.origin.y - pt.y;
+	pt.y -= rc.origin.y;
 	return pt;
 }
 
@@ -182,11 +242,12 @@ void MainLayer::startViceLevelImpl( int level )
 	removeChild(toolbar);
 	removeAllChildren();
 
-	gamemap = GameMap::create(cstr("lvl/lvl%d.%d.tmx", m_mLevel, m_vLevel));
-	addChild(gamemap);
-
 	toolbar = Toolbar::create();
-	addChild(toolbar);
+	addChild(toolbar, 1);
+	// 	toolbar->setVisible(false);
+
+	gamemap = GameMap::create(m_mLevel, m_vLevel);
+	addChild(gamemap);
 
 	lazyInitAnimation(true);
 }
@@ -214,6 +275,13 @@ void MainLayer::lazyInitAnimation( bool in_or_out )
 void MainLayer::popLayer( Layer* layer )
 {
 	m_uiLayers.push_back(layer);
+	{
+		Size bg = this->getContentSize();
+		Size fg = layer->getContentSize();
+		Point pt( (bg-fg)/2 );
+		pt.y += toolbar->getContentSize().height/2;
+		layer->setPosition( pt );
+	}
 	addChild(layer);
 }
 

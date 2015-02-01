@@ -9,6 +9,10 @@
 #include "string"
 #include "map"
 
+#include "loading/LoadingScene.h"
+#include "SoundMgr.h"
+#include "Effect.h"
+
 using namespace cocos2d;
 using namespace cex;
 using namespace lib4cc3x;
@@ -24,3 +28,6 @@ extern GameMap* gamemap;
 
 class Toolbar;
 extern Toolbar* toolbar;
+
+static const int tw = 70;
+static const int th = 74;

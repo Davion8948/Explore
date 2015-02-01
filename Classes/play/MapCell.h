@@ -1,16 +1,6 @@
 #pragma once
 
 #include "MapObj.h"
-// 
-// enum CellState
-// {
-// 	tNone = 0,
-// 	tTrap = 1,
-// 	tBlock = 2,
-// };
-// #define Is_Trap(x) ((x)&tTrap)
-// #define Is_Block(x) ((x)&tBlock)
-// #define Can_Expand(x) ( Is_Block(x)&&(!Is_Trap(x)) )
 
 class MapCell
 	: public Sprite
@@ -24,6 +14,8 @@ public:
 	virtual bool init() override;
 
 	void pushObjBy(const cocos2d::ValueMap& data);
+	void clear();
+	bool empty();
 
 	bool isMine();
 	void setSurroundMineCount(int num);
@@ -47,12 +39,19 @@ public:
 	bool onEffectMap(bool start_or_end);
 
 	int getAStarCost();
+
+	void playTopEffect(Node* node);
 private:
 	void refreshDisplay(); 
 private:
+	/*
+	 *	列表前端在最上面
+	 */
 	list<MapObj*> m_objs;
+
 	Label* m_pDisplayNumber;
 	int m_surroundMineCount;
+
 	bool m_isMine;
 	bool m_isFlagged;
 };

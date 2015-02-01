@@ -18,6 +18,8 @@ public:
 
 	virtual bool init();
 
+	virtual void update(float delta) override;
+
 	virtual void onStateChanged(GameState gs) override;
 
 	void setMainLevel(int level);
@@ -47,8 +49,8 @@ private:
 	void startViceLevelImpl(int level);
 
 private:
-	int m_startTouchTime;
-	bool m_bCurLongTouchEnd;
+	float m_longTouchingTimeCount;
+	Point m_touchingPoint;
 
 	list<Layer*> m_uiLayers;
 

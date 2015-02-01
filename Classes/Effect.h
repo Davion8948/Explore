@@ -10,3 +10,5 @@ public:
 private:
 	void onAnimateFinished();
 };
+
+cocos2d::Sequence* autoRemoveAction(cocos2d::Node* target, cocos2d::FiniteTimeAction* action1);

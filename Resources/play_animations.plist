@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>animations</key>
+	<dict>
+		<key>ocean</key>
+		<dict>
+			<key>delay</key>
+			<real>0.2</real>
+			<key>frames</key>
+			<array>
+				<string>ocean00.png</string>
+                <string>ocean01.png</string>
+                <string>ocean02.png</string>
+                <string>ocean03.png</string>
+                <string>ocean04.png</string>
+                <string>ocean05.png</string>
+                <string>ocean06.png</string>
+                <string>ocean07.png</string>
+                <string>ocean08.png</string>
+                <string>ocean09.png</string>
+                <string>ocean10.png</string>
+                <string>ocean11.png</string>
+                <string>ocean12.png</string>
+                <string>ocean13.png</string>
+                <string>ocean14.png</string>
+                <string>ocean15.png</string>
+                <string>ocean16.png</string>
+                <string>ocean17.png</string>
+                <string>ocean18.png</string>
+                <string>ocean19.png</string>
+                <string>ocean20.png</string>
+                <string>ocean21.png</string>
+                <string>ocean22.png</string>
+                <string>ocean23.png</string>
+                <string>ocean24.png</string>
+                <string>ocean25.png</string>
+                <string>ocean26.png</string>
+                <string>ocean27.png</string>
+                <string>ocean28.png</string>
+                <string>ocean29.png</string>
+                <string>ocean30.png</string>
+                <string>ocean31.png</string>
+			</array>
+		</dict>
+	</dict>
+</dict>
+</plist>

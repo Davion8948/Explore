@@ -1,6 +1,8 @@
 #include "Prop.h"
 #include "GameMap.h"
 #include "UDWhenPlay.h"
+#include "SoundMgr.h"
+#include "MapCell.h"
 
 ImplementDynamicCreation(Prop);
 
@@ -30,6 +32,32 @@ void Prop::config( const cocos2d::ValueMap& cfg )
 
 bool Prop::willPlayerEnter( Player* player )
 {
+	switch (m_type)
+	{
+	case udi_t::udi_heart:
+		playEffect(PickupHeart);
+		break;
+	case udi_t::udi_shield:
+		playEffect(PickupShield);
+		break;
+	case udi_t::udi_key:
+		playEffect(PickupKey);
+		break;
+	case udi_t::udi_arrow:
+		playEffect(PickupArrow);
+		break;
+	case udi_t::udi_hoe:
+		playEffect(PickupHoe);
+		break;
+	case udi_t::udi_bomb:
+		playEffect(PickupBomb);
+		break;
+	case udi_t::udi_map:
+		playEffect(PickupMap);
+		break;
+	default:
+		break;
+	}
 	return true;
 }
 
@@ -43,7 +71,8 @@ bool Prop::onPlayerSteping( Player* player )
 	text->setAnchorPoint(Point(0, 0.5f));
 	texture->addChild(text);
 	texture->setScale(0.5f);
-	getParent()->addChild(texture);
+	texture->setLocalZOrder(player->getLocalZOrder());
+	getParentCell()->playTopEffect(texture);
 
 	texture->runAction( Sequence::create(MoveBy::create(3, Vec2(0, 64+32)), CCCallFunc::create(std::bind(&Node::removeFromParent,texture)), 0) );
 
@@ -54,9 +83,4 @@ bool Prop::onPlayerFinished( Player* player )
 {
 	UDWhenPlay::inst().addValue(m_type, 1);
 	return false;
-}
-
-bool Prop::canAStar()
-{
-	return true;
 }

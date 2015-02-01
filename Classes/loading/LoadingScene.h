@@ -1,5 +1,5 @@
 #pragma once
-#include "play\play_shared.h"
+#include "loading/loading_shared.h"
 
 class LoadingScene 
 	: public Scene
@@ -9,6 +9,5 @@ public:
 	virtual ~LoadingScene(void);
 	CREATE_FUNC(LoadingScene);
 	virtual bool init() override;
-
 };
 

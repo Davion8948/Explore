@@ -2,7 +2,8 @@
 #include "MapObj.h"
 
 class Rock :
-	public MapObj, public DynamicCreation
+	public MapObj,
+	public DynamicCreation
 {
 public:
 	Rock(void);
@@ -16,6 +17,6 @@ public:
 	virtual bool onPlayerSteping(Player* player) override;
 	virtual bool onPlayerFinished(Player* player) override;
 
-	virtual bool canUseBomb() override;
+	virtual ObjAttr getAttr() override;
 };
 

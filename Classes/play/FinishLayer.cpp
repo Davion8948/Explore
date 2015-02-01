@@ -25,10 +25,19 @@ bool FinishLayer::init()
 	dynamic_cast<Text*>(m_pItems[2]->getChildByName("num2"))->setString( to_string(LevelData::inst().getKilledMonster()) );
 	dynamic_cast<Text*>(m_pItems[3]->getChildByName("num3"))->setString( to_string(LevelData::inst().getDestroyedTrap()) );
 	dynamic_cast<Text*>(m_pItems[4]->getChildByName("num4"))->setString( to_string(LevelData::inst().getOpenedDoor()) );
+
 	Button* btn = nullptr;
-	
-	btn = dynamic_cast<Button*>(finish->getChildByName("next"));
-	btn->addTouchEventListener( std::bind(&FinishLayer::onBtnNextLevel, this, placeholders::_1, placeholders::_2) );
+	{
+		btn = dynamic_cast<Button*>(finish->getChildByName("return"));
+		btn->addTouchEventListener( std::bind(&FinishLayer::onBtnReturn, this, placeholders::_1, placeholders::_2) );
+
+		btn = dynamic_cast<Button*>(finish->getChildByName("next"));
+		btn->addTouchEventListener( std::bind(&FinishLayer::onBtnNextLevel, this, placeholders::_1, placeholders::_2) );
+
+		btn = dynamic_cast<Button*>(finish->getChildByName("share"));
+		btn->addTouchEventListener( std::bind(&FinishLayer::onBtnShare, this, placeholders::_1, placeholders::_2) );
+	}
+
 
 	return true;
 }
@@ -44,9 +53,24 @@ void FinishLayer::onEnter()
 	}
 }
 
+void FinishLayer::onBtnReturn( Ref*, ui::Widget::TouchEventType type )
+{
+	Return_If(type != Widget::TouchEventType::ENDED);
+	playEffect(ClickButton);
+	Scene* scene = TransitionPageTurn::create(1, LoadingScene::create(), false);
+	Director::getInstance()->replaceScene( scene );
+}
+
 void FinishLayer::onBtnNextLevel( Ref*, Widget::TouchEventType type )
 {
 	Return_If(type != Widget::TouchEventType::ENDED);
-	//GameStateMgr::inst().change(gs_);
+	playEffect(ClickButton);
 	mainlayer->startNextLevel();
+}
+
+void FinishLayer::onBtnShare( Ref*, ui::Widget::TouchEventType type )
+{
+	Return_If(type != Widget::TouchEventType::ENDED);
+	playEffect(ClickButton);
+	CCLOG("onBtnShare");
 }

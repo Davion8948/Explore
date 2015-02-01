@@ -3,6 +3,10 @@
 #include "Trap.h"
 #include "LevelData.h"
 
+static const int tag_effect_map = 0x03;
+static const int tag_effect_bomb = 0x02;
+static const int tag_effect_hoe = 0x01;
+
 MapCell::MapCell( void )
 	:m_pDisplayNumber(nullptr)
 	,m_isMine(false)
@@ -26,7 +30,8 @@ bool MapCell::init()
 void MapCell::pushObjBy( const cocos2d::ValueMap& data )
 {
 	const string& type = data.at("type").asString();
-	MapObj* obj = MapObj::create(type);
+	MapObj* obj = MapObj::create(type, data);
+	obj->setParentCell(this);
 	obj->config(data);
 
 	m_objs.push_front(obj);
@@ -36,6 +41,11 @@ void MapCell::pushObjBy( const cocos2d::ValueMap& data )
 	{
 		m_isMine = (dynamic_cast<Trap*>(obj)!=nullptr);
 	}
+}
+
+bool MapCell::empty()
+{
+	return m_objs.empty();
 }
 
 bool MapCell::isMine()
@@ -53,16 +63,23 @@ void MapCell::setSurroundMineCount( int num )
 void MapCell::onFlagged()
 {
 	Return_If(m_objs.empty());
-	Return_If(!m_objs.front()->canUseFlag());
+	ObjAttr attr = m_objs.front()->getAttr();
+	Return_If(!attr.canUseFlag());
 	m_isFlagged = !m_isFlagged;
 	static const int tag = 0x04;
 	if (m_isFlagged)
 	{
-		addChild(Sprite::create("flag.png"), 0, tag);
+		Sprite* flag = Sprite::create("flag.png");
+		flag->setScale(3);
+		flag->runAction(ScaleTo::create(0.2f,1));
+		flag->setPosition(tw/2, -th/2);
+		addChild(flag, 0, tag);
+		playEffect(SettingFlag);
 	}
 	else
 	{
 		removeChildByTag(tag);
+		playEffect(RemoveFlag);
 	}
 }
 
@@ -133,6 +150,13 @@ void MapCell::checkDig(Player* player)
 	refreshDisplay();
 }
 
+void MapCell::playTopEffect( Node* node )
+{
+	CCAssert(nullptr!=node, "");
+	node->setPosition( node->getPosition()+getPosition() );
+	getParent()->addChild(node);
+}
+
 void MapCell::refreshDisplay()
 {
 	if (0==m_surroundMineCount || !m_objs.empty())
@@ -145,7 +169,7 @@ void MapCell::refreshDisplay()
 		if (nullptr==m_pDisplayNumber)
 		{
 			m_pDisplayNumber = Label::createWithTTF(to_string(m_surroundMineCount), "fonts/Marker Felt.ttf", 32);
-			m_pDisplayNumber->setPosition(0,0);
+			m_pDisplayNumber->setPosition(tw/2,-th/2);
 			addChild(m_pDisplayNumber);
 		}
 		else
@@ -158,14 +182,13 @@ void MapCell::refreshDisplay()
 bool MapCell::onEffectHoe( bool start_or_end, bool bUse )
 {
 	Return_False_If(m_objs.empty());
-	Return_False_If(!m_objs.front()->canUseHoe());
+	Return_False_If(!m_objs.front()->getAttr().canUseHoe());
 	Return_False_If( m_isFlagged );
 
-	static const int tag = 0x01;
 	if (start_or_end)
 	{
 		Sprite* sp = Sprite::create();
-		sp->setTag(tag);
+		sp->setTag(tag_effect_hoe);
 		Animation* amn = Animation::create();
 		for (int i=1; i<18; ++i)
 		{
@@ -173,7 +196,7 @@ bool MapCell::onEffectHoe( bool start_or_end, bool bUse )
 		}
 		amn->setDelayPerUnit(0.1f);
 		sp->runAction(RepeatForever::create(Animate::create(amn)));
-		sp->setPosition( Point(8, 8) );
+		sp->setPosition( Point(tw/2, -th/2) );
 		addChild(sp);
 	}
 	else
@@ -182,8 +205,9 @@ bool MapCell::onEffectHoe( bool start_or_end, bool bUse )
 		{
 			removeChild(m_objs.front(), true);
 			m_objs.pop_front();
+			playEffect(UseHoe);
 		}
-		removeChildByTag(tag);
+		removeChildByTag(tag_effect_hoe);
 	}
 	return true;
 }
@@ -191,14 +215,13 @@ bool MapCell::onEffectHoe( bool start_or_end, bool bUse )
 bool MapCell::onEffectBomb( bool start_or_end, bool bUse )
 {
 	Return_False_If(m_objs.empty());
-	Return_False_If(!m_objs.front()->canUseBomb());
+	Return_False_If(!m_objs.front()->getAttr().canUseBomb());
 	Return_False_If( m_isFlagged );
 
-	static const int tag = 0x02;
 	if (start_or_end)
 	{
 		Sprite* sp = Sprite::create();
-		sp->setTag(tag);
+		sp->setTag(tag_effect_bomb);
 		Animation* amn = Animation::create();
 		for (int i=1; i<12; ++i)
 		{
@@ -206,7 +229,7 @@ bool MapCell::onEffectBomb( bool start_or_end, bool bUse )
 		}
 		amn->setDelayPerUnit(0.1f);
 		sp->runAction(RepeatForever::create(Animate::create(amn)));
-		sp->setPosition( Point(8, 8) );
+		sp->setPosition( Point(tw/2, -th/2) );
 		addChild(sp);
 	}
 	else
@@ -216,8 +239,9 @@ bool MapCell::onEffectBomb( bool start_or_end, bool bUse )
 			for (auto x : m_objs)
 				removeChild(x, true);
 			m_objs.clear();
+			playEffect(UseBomb);
 		}
-		removeChildByTag(tag);
+		removeChildByTag(tag_effect_bomb);
 
 		if (isMine())
 		{
@@ -230,21 +254,23 @@ bool MapCell::onEffectBomb( bool start_or_end, bool bUse )
 bool MapCell::onEffectMap(bool start_or_end)
 {
 	Return_False_If(m_objs.empty());
-	Return_False_If(!m_objs.front()->canUseMap());
+	Return_False_If(!m_objs.front()->getAttr().canUseMap());
 	Return_False_If( m_isFlagged );
 
-	static const int tag = 0x03;
+	static const int tag_effect_map = 0x03;
 	if (start_or_end)
 	{
 		Sequence* seq = Sequence::createWithTwoActions( FadeTo::create(1,0), FadeTo::create(1,255) );
 		RepeatForever* rep = RepeatForever::create(seq);
-		rep->setTag(tag);
+		rep->setTag(tag_effect_map);
 		m_objs.front()->runAction( rep );
+
+		playEffect(UseMap);
 	}
 	else
 	{
 		m_objs.front()->setOpacity(255);
-		m_objs.front()->stopActionByTag(tag);
+		m_objs.front()->stopActionByTag(tag_effect_map);
 	}
 
 	return true;
@@ -253,12 +279,25 @@ bool MapCell::onEffectMap(bool start_or_end)
 int MapCell::getAStarCost()
 {
 	Return_Null_If(m_objs.empty());
-	if ( m_objs.front()->canAStar() )
+	if (m_isFlagged)
 	{
-		return 0;
+		return ObjAttr::AStarMax;
+	}
+	else if ( !m_objs.empty() )
+	{
+		return m_objs.front()->getAttr().AStarCost();
 	}
 	else
 	{
-		return INT_MAX;
+		return ObjAttr::AStarMin;
 	}
+}
+
+void MapCell::clear()
+{
+	m_isMine = false;
+	m_isFlagged = false;
+	
+	m_objs.clear();
+	removeAllChildren();
 }

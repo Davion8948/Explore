@@ -2,6 +2,7 @@
 #include "GameMap.h"
 #include "UDWhenPlay.h"
 #include "LevelData.h"
+#include "SoundMgr.h"
 
 ImplementDynamicCreation(Coin);
 
@@ -19,19 +20,21 @@ void Coin::config( const cocos2d::ValueMap& cfg )
 {
 	int coin = cfg.at("coin").asInt();
 	m_coin = coin;
-	if (coin == 10)
-	{
-		initWithFile("coin1.png");
-	}
-	else if (coin == 100)
-	{
-		initWithFile("coin2.png");
-	}
+	initWithFile( cstr("coin%d.png", coin) );
 	MapObj::config(cfg);
 }
 
 bool Coin::willPlayerEnter( Player* player )
 {
+	switch (m_coin)
+	{
+	case 10:
+		playEffect(PickupGold0);
+		break;
+	case 100:
+		playEffect(PickupGold1);
+		break;
+	}
 	return true;
 }
 
@@ -40,7 +43,8 @@ bool Coin::onPlayerSteping( Player* player )
 	Label* text = Label::createWithTTF( sstr("+%d",m_coin), "fonts/Marker Felt.ttf", 32);
 	text->setPosition(getPosition());
 	text->runAction( Sequence::create(MoveBy::create(2, Vec2(0, 64)), CCCallFunc::create(std::bind(&CCNode::removeFromParent, text)), 0) );
-	getParent()->addChild(text);
+	text->setLocalZOrder(player->getLocalZOrder());
+	getParentCell()->playTopEffect(text);
 	return true;
 }
 
@@ -51,7 +55,3 @@ bool Coin::onPlayerFinished( Player* player )
 	return false;
 }
 
-bool Coin::canAStar()
-{
-	return true;
-}

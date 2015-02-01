@@ -14,8 +14,9 @@ TrapFire::~TrapFire(void)
 
 void TrapFire::config( const cocos2d::ValueMap& cfg )
 {
-	MapObj::config(cfg);
 	initWithFile("fire_000.png");
+	setContentSize(Size(73,83));
+	MapObj::config(cfg);
  	runAction( RepeatForever::create( Animate::create(fireAnimation(2)) ) );
 }
 
@@ -26,6 +27,7 @@ bool TrapFire::willPlayerEnter( Player* player )
 		this->runAction( RepeatForever::create(Animate::create(this->fireAnimation(2))) );
 	}), nullptr) );
 
+	playEffect(TrapBurn);
 	return true;
 }
 

@@ -17,7 +17,6 @@ public:
 	virtual bool onPlayerSteping(Player* player);
 	virtual bool onPlayerFinished(Player* player);
 
-	virtual bool canAStar() override;
 private:
 	udi_t m_type;
 	string m_texture;

@@ -1,5 +1,7 @@
 #pragma once
-#include "play/play_shared.h"
+#include "loading/loading_shared.h"
+using namespace ui;
+#define MAX_MAIN_LEVEL 6
 class MainLevelLayer
 	:public Layer
 {
@@ -8,6 +10,13 @@ public:
 	~MainLevelLayer(void);
 	CREATE_FUNC(MainLevelLayer);
 	virtual bool init();
-	void onClickLevel(Ref *target, cocos2d::ui::Widget::TouchEventType type);
+	void onClickLevel(Ref *target);
+	void onClickBack(Ref *sender);
+	void createScrollView();
+	void setIntent(const ValueMap &intent);
+private:
+	ValueMap mIntent;
+	Menu *menu ;
+	Menu * createMenu(const Size &contentSize);
 };
 

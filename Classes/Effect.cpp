@@ -33,3 +33,8 @@ void Effect::onAnimateFinished()
 {
 	removeFromParent();
 }
+
+cocos2d::Sequence* autoRemoveAction( cocos2d::Node* target, cocos2d::FiniteTimeAction* action1 )
+{
+	return Sequence::create( action1, CallFunc::create(std::bind(&Node::removeFromParent, target)), nullptr );
+}

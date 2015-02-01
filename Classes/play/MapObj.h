@@ -1,8 +1,43 @@
 #pragma once
 
 #include "play_shared.h"
+#include "SoundMgr.h"
+
+class ObjAttr
+{
+public:
+    ObjAttr();
+    
+    bool isTrap();
+	void setTrap(bool trap);
+    
+    bool canUseHoe();
+	bool canUseBomb();
+	bool canUseMap();
+	bool canUseFlag();
+
+	void setUseHoe(bool use);
+	void setUseBomb(bool use);
+	void setUseMap(bool use);
+	void setUseFlag(bool use);
+    
+	enum AStarLevel
+	{
+		AStarMin = 0,
+// 		AStarLevel1 = 100,
+// 		AStarLevel2 = 150,
+		AStarMax = INT_MAX
+	};
+    int AStarCost();
+	void setAStarCost(AStarLevel val);
+private:
+	//m_attr从右向左5位分别是5个属性，其它未用。
+	int m_attr;
+	int m_astar;
+};
 
 class Player;
+class MapCell;
 class MapObj
 	: public Sprite
 {
@@ -10,12 +45,13 @@ public:
 	MapObj(void);
 	virtual ~MapObj(void);
 
-	static MapObj* create(const string& name);
+    
+	static MapObj* create(const string& type, const ValueMap& cfg);
 
 	/*
 	 *	将在init之后被调用
 	 */
-	virtual void config(const cocos2d::ValueMap& cfg);
+	virtual void config(const ValueMap& cfg);
 
 	/*
 	 *	Player将要踏上此Obj之前会被调用
@@ -40,21 +76,16 @@ public:
 	virtual bool onPlayerFinished(Player* player);
 
 	/*
-	 *	当Player在这个MapObj旁边时被调用，但现在暂时被用于递归拓展MapObj
+	 *	当Player在这个MapObj旁边时被调用，但现在暂时被用于递归拓展挖开MapObj
 	 */
 	virtual bool onPlayerSurround(Player* player);
 
-	/*
-	 *	是否可在其上使用道具
-	 */
-	virtual bool canUseHoe();
-	virtual bool canUseBomb();
-	virtual bool canUseMap();
-	virtual bool canUseFlag();
+	virtual ObjAttr getAttr();
 
-	virtual bool canAStar();
 private:
-	int m_row;
-	int m_col;
+	MapCell* m_pParentCell;
+public:
+	void setParentCell(MapCell* pCell);
+	MapCell* getParentCell();
 };
 

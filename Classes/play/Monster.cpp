@@ -22,8 +22,11 @@ void Monster::config( const cocos2d::ValueMap& cfg )
 bool Monster::willPlayerEnter( Player* player )
 {
 	int x = UDWhenPlay::inst().getValue(udi_t::udi_arrow);
-	Return_False_If(x==0);
-
+	if (x == 0)
+	{
+		player->showTip("arrow.png");
+		return false;
+	}
 	return true;
 }
 
@@ -36,12 +39,16 @@ bool Monster::onPlayerFinished( Player* player )
 {
 	int x = UDWhenPlay::inst().getValue(udi_t::udi_arrow);
 	Return_True_If(x==0);
+
+	playEffect(MonsterDeath);
 	UDWhenPlay::inst().setValue(udi_t::udi_arrow, x-1);
 	LevelData::inst().addKilledMonster(1);
 	return false;
 }
 
-bool Monster::canAStar()
+ObjAttr Monster::getAttr()
 {
-	return UDWhenPlay::inst().getValue(udi_t::udi_arrow)!=0;
+	ObjAttr attr;
+	attr.setAStarCost( UDWhenPlay::inst().getValue(udi_t::udi_arrow)!=0 ? ObjAttr::AStarMin : ObjAttr::AStarMax );
+	return attr;
 }

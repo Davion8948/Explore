@@ -7,7 +7,6 @@ Trap::Trap(void)
 {
 }
 
-
 Trap::~Trap(void)
 {
 }
@@ -33,7 +32,10 @@ bool Trap::onPlayerFinished( Player* player )
 	return true;
 }
 
-bool Trap::canUseFlag()
+ObjAttr Trap::getAttr()
 {
-	return true;
+	ObjAttr attr;
+	attr.setUseFlag(true);
+	attr.setAStarCost(ObjAttr::AStarMax);
+	return attr;
 }

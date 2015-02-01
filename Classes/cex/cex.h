@@ -35,11 +35,11 @@ typedef unsigned long ulong;
 namespace cex
 {	
 	/*
-	 *	?à??3ì°?±?
-	 *	??3ì°2è?μ?D§?êμíò?μ?
+	 *	多线程版本
+	 *	线程安全但效率低一点
 	 *	
-	 *	±?à′ó|??ê1ó?±?2??￡°?è￥×?
-	 *	μ?vs20122??§3?
+	 *	本来应该使用变参模板去做
+	 *	但vs2012不支持
 	 */
 	template<int buffsize>
 	std::string to_str(const char* format, ...)
@@ -57,8 +57,8 @@ namespace cex
 	}
 
 	/*
-	 *	μ￥??3ì°?±?
-	 *	·???3ì°2è?μ?D§?ê??ò?μ?
+	 *	单线程版本
+	 *	非线程安全但效率高一点
 	 */
 	template<int buffsize>
 	const char* to_cstr(const char* format, ...)
@@ -76,7 +76,7 @@ namespace cex
 	}
 
 	/*
-	 *	ò?°??é????￡??éò?ê1ó??aá???oê?¨ò??ò?ˉ′ú??±àD′
+	 *	一般情况下，可以使用这两个宏定义简化代码编写
 	 */
 	#define cstr to_cstr<128>
 	#define sstr to_str<128>

@@ -10,6 +10,6 @@ public:
 
 	virtual bool onPlayerFinished(Player* player) override;
 
-	virtual bool canUseFlag() override;
+	virtual ObjAttr getAttr() override;
 };
 

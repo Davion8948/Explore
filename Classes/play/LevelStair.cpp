@@ -17,6 +17,7 @@ void LevelStair::config( const cocos2d::ValueMap& cfg )
 {
 	initWithFile("level_stair.png");
 	MapObj::config(cfg);
+// 	setPosition(getPosition()+Point(-15,30));
 }
 
 bool LevelStair::willPlayerEnter(Player* player)
@@ -40,10 +41,5 @@ bool LevelStair::onPlayerFinished(Player* player)
 
 bool LevelStair::onPlayerSurround(Player* player)
 {	
-	return true;
-}
-
-bool LevelStair::canAStar()
-{
 	return true;
 }

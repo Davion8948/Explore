@@ -1,6 +1,7 @@
 #pragma once
 
 #include "MapCell.h"
+#include "GameState.h"
 
 enum MoveStatus
 {
@@ -12,6 +13,7 @@ enum MoveStatus
 
 class Player
 	: public Sprite
+	, public GameStateListener
 {
 public:
 	Player(void);
@@ -20,21 +22,25 @@ public:
 	CREATE_FUNC(Player);
 
 	virtual bool init();
+	virtual void onStateChanged(GameState gs) override;
 
  	void stepTo(const Point& dst, MapCell* cell, std::function<void(MoveStatus)> whenFinish);
 
-	void showTip(Sprite* tip);
+	void showTip(const std::string& tip_name);
+	void hideTip();
+
 protected:
 	void stepMid(const Point& dst, MapCell* cell, std::function<void(MoveStatus)> whenFinish);
  	void backToLastPos();
 
-protected:
 	void initWithPlayerName(const string& name);
 
 	enum Direction
 	{
-		d_up, d_right, d_down, d_left
+		d_up, d_ur, d_right, d_rd, d_down, d_dl, d_left, d_lt
 	};
+
+	Direction getDirection(const Point& start, const Point& end);
 private:
 	string m_player;
 };

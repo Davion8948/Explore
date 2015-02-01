@@ -22,8 +22,12 @@ void LockedDoor::config( const cocos2d::ValueMap& cfg )
 
 bool LockedDoor::willPlayerEnter( Player* player )
 {
-	int x = UDWhenPlay::inst().getValue(udi_t::udi_key);	
-	Return_False_If(x==0);
+	int x = UDWhenPlay::inst().getValue(udi_t::udi_key);
+	if (x==0)
+	{
+		player->showTip("key.png");
+		return false;
+	}
 	return true;
 }
 
@@ -41,7 +45,9 @@ bool LockedDoor::onPlayerFinished( Player* player )
 	return false;
 }
 
-bool LockedDoor::canAStar()
+ObjAttr LockedDoor::getAttr()
 {
-	return UDWhenPlay::inst().getValue(udi_t::udi_key)!=0;
+	ObjAttr attr;
+	attr.setAStarCost( UDWhenPlay::inst().getValue(udi_t::udi_key)!=0 ? ObjAttr::AStarMin : ObjAttr::AStarMax );
+	return attr;
 }

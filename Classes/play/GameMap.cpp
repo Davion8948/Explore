@@ -1,13 +1,18 @@
 #include "GameMap.h"
 #include "Player.h"
 #include "MapCell.h"
-#include "SoilBlock.h"
+#include "GameMapRoom.h"
+#include "GameMapRecrusive.h"
+#include "Toolbar.h"
 
 GameMap::GameMap(void)
 	:m_restartPlayer(false)
+	,m_pPlayer(nullptr)
 	,m_bUsingMap(false)
 	,m_bUsingBomb(false)
 	,m_bUsingHoe(false)
+	,m_tw(tw)
+	,m_th(th)
 {
 }
 
@@ -16,10 +21,10 @@ GameMap::~GameMap(void)
 {
 }
 
-GameMap* GameMap::create( const std::string& tmxFile )
+GameMap* GameMap::create( int mainLevel, int viceLevel )
 {
-	GameMap* ret = new GameMap;
-	if (ret->initWithTMXFile(tmxFile))
+	GameMap* ret = new GameMapRecrusive();
+	if (ret->initWithLevel(mainLevel, viceLevel))
 	{
 		ret->autorelease();
 		return ret;
@@ -30,11 +35,16 @@ GameMap* GameMap::create( const std::string& tmxFile )
 
 void GameMap::onClick( const Point& pt )
 {
+	m_pPlayer->hideTip();
+
+	Index2 click = pointToIndex2(pt);
+	Index2 player = pointToIndex2(m_pPlayer->getPosition());
+
+	CCLOG("click(%d, %d)", click.first, click.second);
+	Rect asdf = this->getBoundingBox();
 	if (m_bUsingHoe)
 	{
-		Index2 click = tmxToIndex2(pt);
-		//Index2 pos = tmxToIndex2(cocosToTMX(m_pPlayer->getPosition()));
-		vector<Index2> surround = getSurrounding(tmxToIndex2(cocosToTMX(m_pPlayer->getPosition())), 2);
+		vector<Index2> surround = getSurrounding( player, 2);
 		for (Index2& x : surround)
 		{
 			m_objects[x.first][x.second]->onEffectHoe(false, click==x);
@@ -45,8 +55,7 @@ void GameMap::onClick( const Point& pt )
 	//
 	if (m_bUsingBomb)
 	{
-		Index2 click = tmxToIndex2(pt);
-		vector<Index2> surround = getSurrounding(tmxToIndex2(cocosToTMX(m_pPlayer->getPosition())), 2);
+		vector<Index2> surround = getSurrounding(player, 2);
 		for (Index2& x : surround)
 		{
 			m_objects[x.first][x.second]->onEffectBomb(false, click==x);
@@ -58,21 +67,29 @@ void GameMap::onClick( const Point& pt )
 	if (m_bUsingMap)
 	{
 		m_bUsingMap = false;
-		Index2 pos = tmxToIndex2(cocosToTMX(m_pPlayer->getPosition()));
-		vector<Index2> surround = getSurrounding(pos, 2);
+		vector<Index2> surround = getSurrounding(player, 2);
 		for (Index2& x : surround)
 		{
 			m_objects[x.first][x.second]->onEffectMap(false);
 		}
 	}
 
+	Return_If(player == click);
+	
 	//
 	if (m_curPath.empty())
 	{
 		m_restartPlayer = false;
-		auto x = tmxToIndex2(cocosToTMX(m_pPlayer->getPosition()));
-		m_curPath = getPath( x, tmxToIndex2(pt) );
-		stepPlayer();
+		auto x = player;
+		m_curPath = getPath( x, click );
+		if (m_curPath.empty())
+		{
+			m_pPlayer->showTip("unknown.png");
+		}
+		else
+		{
+			stepPlayer();
+		}
 	}
 	else
 	{
@@ -83,71 +100,74 @@ void GameMap::onClick( const Point& pt )
 
 void GameMap::onLongTouches( const Point& pt )
 {
-	Index2 pos = tmxToIndex2(pt);
-	if (pos.first>0 && pos.first<m_objects.size()-1 && pos.second>0 && pos.second<m_objects[0].size()-1)
+	m_pPlayer->hideTip();
+
+	Index2 click = pointToIndex2(pt);
+	if (click.first>0 && click.first<m_objects.size()-1 && click.second>0 && click.second<m_objects[0].size()-1)
 	{
-		m_objects[pos.first][pos.second]->onFlagged();
+		m_objects[click.first][click.second]->onFlagged();
 	}
 }
 
-bool GameMap::initWithTMXFile( const std::string& tmxFile )
+bool GameMap::initWithLevel( int mainLevel, int viceLevel )
 {
-	Return_False_If(!TMXTiledMap::initWithTMXFile(tmxFile));
+	Return_False_If(!Node::init());
 
-	const int width = static_cast<int>(getMapSize().width);
-	const int height = static_cast<int>(getMapSize().height);
-	m_tw = getTileSize().width;
-	m_th = getTileSize().height;
+	this->makeMap(mainLevel, viceLevel);
 
-	m_objects.resize(height);
-	for (int r=0; r<height; ++r)
+	const int order = m_objects.size()*m_objects[0].size();
+	const Size size = this->getContentSize();
+	float x = 0;
+	float up_height = 0;
+	while (x<size.width)
 	{
-		m_objects[r].resize(width);
-		for (int c=0; c<width; ++c)
-		{
-			MapCell* cell = MapCell::create();
-			cell->setPosition( tmxToCocos(index2ToTMX(Index2(r,c)))+Point(m_tw/2, -m_th/2) );
-			addChild(cell);
-			m_objects[r][c] = cell;
-		}
+		Sprite* sp = Sprite::create("bound_up.png");
+		sp->setPosition(x, size.height);
+		sp->setAnchorPoint(Point(0,0));
+		addChild(sp, order);
+
+		x += sp->getContentSize().width;
+
+		up_height = sp->getContentSize().height;
+	}
+	x = 0;
+	float bottom_height = 0;
+	while (x<size.width)
+	{
+		Sprite* sp = Sprite::create("bound_bottom.png");
+		sp->setPosition(x, 0);
+		sp->setAnchorPoint(Point(0,1));
+		addChild(sp, order);
+
+		x += sp->getContentSize().width;
+
+		bottom_height = sp->getContentSize().height;
 	}
 
-	string obj_layers[] = {"objs2", "objs"};
-	for (string x : obj_layers)
+	float y = -bottom_height;
+	float left_width = 0;
+	while (y<size.height)
 	{
-		auto unnamed_objs = getObjectGroup(x);
-		auto objs = unnamed_objs->getObjects();
-		for (auto it = objs.begin(); it != objs.end(); ++it)
-		{
-			auto obj = it->asValueMap();
-			float x = obj["x"].asFloat();
-			float y = obj["y"].asFloat();
-			Index2 pos = tmxToIndex2( cocosToTMX(Point(x, y)) );
-			m_objects[pos.first][pos.second]->pushObjBy(obj);
-		}
-	}	
+		Sprite* sp = Sprite::create("bound_left.png");
+		sp->setPosition(0, y);
+		sp->setAnchorPoint(Point(1,0));
+		addChild(sp, order);
 
-	TMXObjectGroup* named_objs = getObjectGroup("named_objs");
-	if (nullptr != named_objs)
-	{
-		ValueMap cfg = named_objs->getObject("player");
-		m_pPlayer = Player::create();
-		float x = cfg["x"].asFloat();
-		float y = cfg["y"].asFloat();
-		float w = cfg["width"].asFloat();
-		float h = cfg["height"].asFloat();
+		left_width = sp->getContentSize().width;
 
-		m_pPlayer->setPosition(x+w/2,y+h/2);
-		addChild(m_pPlayer, 10);
-		
-		Size size = this->getContentSize(); 
-		this->runAction( Follow::create(m_pPlayer, Rect(0, -64, size.width, size.height+64)));
+		sp = Sprite::create("bound_left.png");
+		sp->setAnchorPoint(Point(0,0));
+		sp->setRotation(180);
+		sp->setPosition(size.width+left_width, y+sp->getContentSize().height);
+		addChild(sp, order);
+
+		y += sp->getContentSize().height;
 	}
 
 	//init display number
-	for (int r=0; r<height; ++r)
+	for (int r=0; r<m_objects.size(); ++r)
 	{
-		for (int c=0; c<width; ++c)
+		for (int c=0; c<m_objects[r].size(); ++c)
 		{
 			int mine_count = 0;
 			for (auto&x : getSurrounding(Index2(r,c)))
@@ -161,37 +181,38 @@ bool GameMap::initWithTMXFile( const std::string& tmxFile )
 		}
 	}
 
-	EventListenerKeyboard* key = EventListenerKeyboard::create();
-	key->onKeyPressed = std::bind(&GameMap::onKeyDown, this, std::placeholders::_1, std::placeholders::_2);
-	Director::getInstance()->getEventDispatcher()->addEventListenerWithSceneGraphPriority(key, this);
+	CCAssert(NULL!=m_pPlayer, "");
+	dig(pointToIndex2(m_pPlayer->getPosition()));
 
-	dig(tmxToIndex2(cocosToTMX(m_pPlayer->getPosition())));
-
+// 	Size size = this->getContentSize(); 
+// 	-m_border.width, -m_border.height, size.width+m_border.width*2, size.height+m_border.height*2
+	const float tool = toolbar->getContentSize().height*4/5;
+	this->runAction( Follow::create(m_pPlayer, Rect(-left_width, -bottom_height-tool, size.width+left_width*2, size.height+up_height+bottom_height+tool)));
 	return true;
 }
 
-GameMap::Index2 GameMap::tmxToIndex2( const Point& pt )
+Point GameMap::index2ToPoint( const Index2& index )
 {
-	return Index2( (int)((pt.y-0.5)/this->getTileSize().height), int(pt.x)/int(this->getTileSize().width) );
+	Point pt;
+	pt.x = index.second * m_tw;
+	pt.y = index.first * m_th;
+// 	pt += m_border;
+	return pt;
 }
 
-Point GameMap::index2ToTMX( const Index2& index )
+GameMap::Index2 GameMap::pointToIndex2( const Point& point )
 {
-	return Point(index.second*getTileSize().width, index.first*getTileSize().height);
-}
-
-Point GameMap::cocosToTMX( Point pt )
-{
-	return Point(pt.x, this->getContentSize().height-pt.y);
-}
-
-Point GameMap::tmxToCocos( Point pt )
-{
-	return cocosToTMX(pt);
+	Index2 index;
+	index.first = static_cast<int>( (point.y) / m_th);
+	index.second = static_cast<int>( (point.x) / m_tw);
+	return index;
 }
 
 list<GameMap::Index2> GameMap::getPath( const Index2& from, const Index2& to )
 {
+	if (from==to || (to.first<0 || to.first>=m_objects.size() || to.second<0 || to.second>=m_objects[0].size()))
+		return list<Index2>();
+
 	struct AStarInfo
 	{
 		int g;
@@ -211,7 +232,6 @@ list<GameMap::Index2> GameMap::getPath( const Index2& from, const Index2& to )
 	do
 	{
 		Break_If( opened.empty() );
-
 		int min_cost = INT_MAX;
 		Index2 curPos(-1,-1);
 		AStarInfo curInfo(INT_MAX, 0);
@@ -232,7 +252,13 @@ list<GameMap::Index2> GameMap::getPath( const Index2& from, const Index2& to )
 		for (auto it = surround.begin(); it != surround.end(); ++it)
 		{
 			MapCell* cell = m_objects[it->first][it->second];
-			if ( cell->getAStarCost()==INT_MAX || closed.find(*it)!=closed.end() )
+			if ( *it == to )
+			{
+				AStarInfo info( curInfo.g+loss(curPos,*it), loss(*it, to) );
+				info.parent = curPos;
+				opened.insert( make_pair(*it, info) );
+			}
+			else if ( cell->getAStarCost()==INT_MAX || closed.find(*it)!=closed.end() )
 			{
 				//do nothing
 			}
@@ -289,9 +315,9 @@ void GameMap::stepPlayer()
 	Return_If(m_curPath.empty());
 	auto x = m_curPath.front();
 	m_pPlayer->stepTo(
-		tmxToCocos(index2ToTMX(x)) + Point(m_tw/2, -m_th/2)
-		,m_objects[x.first][x.second]
-		,[=](MoveStatus ms){this->onPlayerFinishOneStep(x, ms);} );
+		index2ToPoint(x)+Point(m_tw/2, m_th/2),
+		m_objects[x.first][x.second],
+		[=](MoveStatus ms){this->onPlayerFinishOneStep(x, ms);} );
 }
 
 void GameMap::onPlayerFinishOneStep( const Index2& index, MoveStatus ms )
@@ -311,8 +337,8 @@ void GameMap::onPlayerFinishOneStep( const Index2& index, MoveStatus ms )
 		{
 			m_restartPlayer = false;
 			m_curPath.clear();
-			auto x = tmxToIndex2(cocosToTMX(m_pPlayer->getPosition()));
-			m_curPath = getPath( x, tmxToIndex2(m_playerTarget) );
+			auto x = pointToIndex2(m_pPlayer->getPosition());
+			m_curPath = getPath( x, pointToIndex2(m_playerTarget) );
 			stepPlayer();
 		}
 		else if (!m_curPath.empty())
@@ -331,9 +357,9 @@ std::vector<GameMap::Index2> GameMap::getSurrounding( const Index2& center, int 
 	int r_end = center.first+radius+1;
 	int c_start = center.second-radius;
 	int c_end = center.second+radius+1;
-	for (int r=max(1,r_start); r<min(r_end, (int)m_objects.size()-1); ++r)
+	for (int r=max(0,r_start); r<min(r_end, (int)m_objects.size()); ++r)
 	{
-		for (int c=max(1,c_start); c<min(c_end, (int)m_objects[0].size()-1); ++c)
+		for (int c=max(0,c_start); c<min(c_end, (int)m_objects[0].size()); ++c)
 		{
 			Continue_If( make_pair(r, c)==center );
 			ret.push_back( make_pair(r,c) );
@@ -353,44 +379,11 @@ void GameMap::dig( const Index2& center )
 	}
 }
 
-void GameMap::onKeyDown( EventKeyboard::KeyCode key, Event* )
-{
-	Index2 next = tmxToIndex2(cocosToTMX(m_pPlayer->getPosition()));
-	Point cur = m_pPlayer->getPosition();
-	switch (key)
-	{
-	case cocos2d::EventKeyboard::KeyCode::KEY_LEFT_ARROW:
-		--next.second;
-		cur.x -= 64;
-		break;
-	case cocos2d::EventKeyboard::KeyCode::KEY_RIGHT_ARROW:
-		++next.second;
-		cur.x += 64;
-		break;
-	case cocos2d::EventKeyboard::KeyCode::KEY_UP_ARROW:
-		--next.first;
-		cur.y += 64;
-		break;
-	case cocos2d::EventKeyboard::KeyCode::KEY_DOWN_ARROW:
-		++next.first;
-		cur.y -= 64;
-		break;
-	}
-
-	next.first = max(next.first, 0);
-	next.first = min(next.first, (int)getMapSize().height-1);
-	next.second = max(next.second, 0);
-	next.second = min(next.second, (int)getMapSize().width-1);
-
-	
-	onClick(cocosToTMX(cur));
-}
-
 bool GameMap::onEffectHoe()
 {
 	Return_False_If(m_bUsingHoe);
 
-	Index2 pos = tmxToIndex2(cocosToTMX(m_pPlayer->getPosition()));
+	Index2 pos = pointToIndex2(m_pPlayer->getPosition());
 	vector<Index2> surround = getSurrounding(pos, 1);
 	for (Index2& x : surround)
 	{
@@ -404,7 +397,7 @@ bool GameMap::onEffectBomb()
 {
 	Return_False_If(m_bUsingBomb);
 
-	Index2 pos = tmxToIndex2(cocosToTMX(m_pPlayer->getPosition()));
+	Index2 pos = pointToIndex2(m_pPlayer->getPosition());
 	vector<Index2> surround = getSurrounding(pos, 1);
 	for (Index2& x : surround)
 	{
@@ -418,7 +411,7 @@ bool GameMap::onEffectMap()
 {
 	Return_False_If(m_bUsingMap);
 
-	Index2 pos = tmxToIndex2(cocosToTMX(m_pPlayer->getPosition()));
+	Index2 pos = pointToIndex2(m_pPlayer->getPosition());
 	vector<Index2> surround = getSurrounding(pos, 2);
 	for (Index2& x : surround)
 	{
