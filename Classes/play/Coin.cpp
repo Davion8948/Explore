@@ -26,21 +26,24 @@ void Coin::config( const cocos2d::ValueMap& cfg )
 
 bool Coin::willPlayerEnter( Player* player )
 {
-	switch (m_coin)
-	{
-	case 10:
-		playEffect(PickupGold0);
-		break;
-	case 100:
-		playEffect(PickupGold1);
-		break;
-	}
+// 	switch (m_coin)
+// 	{
+// 	case 10:
+// 		playEffect(PickupGold0);
+// 		break;
+// 	case 50:
+// 	case 100:
+// 		playEffect(PickupGold1);//¨¬?¡ä¨¬?¨²
+// 		break;
+// 	}
+	playEffect(PickupGold0);
 	return true;
 }
 
 bool Coin::onPlayerSteping( Player* player )
 {
 	Label* text = Label::createWithTTF( sstr("+%d",m_coin), "fonts/Marker Felt.ttf", 32);
+	text->setColor(Color3B(255,215,64));
 	text->setPosition(getPosition());
 	text->runAction( Sequence::create(MoveBy::create(2, Vec2(0, 64)), CCCallFunc::create(std::bind(&CCNode::removeFromParent, text)), 0) );
 	text->setLocalZOrder(player->getLocalZOrder());

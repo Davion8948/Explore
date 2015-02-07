@@ -21,7 +21,7 @@ private:
 
 	void setRock(int r, int c);
 	void setSoil(int r, int c, bool cls);
-	void setMouth(int r, int c);
+	void setMouth(int r, int c, bool allowTrap);
 	void setTrap(int r, int c);
 	void setProp(int r, int c);
 	void setCoin(int r, int c);
@@ -46,5 +46,8 @@ private:
 	 *	m_roomCounter: start_index2end_index
 	 */
 	map<Index2, Index2> m_roomCounter;
+
+	int m_mLevel;
+	int m_vLevel;
 };
 

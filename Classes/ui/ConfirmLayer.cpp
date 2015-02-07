@@ -3,6 +3,7 @@
 #include "cocostudio/CocoStudio.h"
 #include "LanguageMgr.h"
 #include "SoundMgr.h"
+#include "Effect.h"
 
 using namespace std;
 USING_NS_CC;
@@ -23,7 +24,11 @@ ConfirmLayer* ConfirmLayer::create( const char* tipID, std::function<void(void)>
 {
 	ConfirmLayer* ret = new ConfirmLayer;
 	CCAssert(nullptr != ret, "");
-	Return_Null_If(!ret->init());
+	if (!ret->init())
+	{
+		delete ret;
+		return NULL;
+	}
 	ret->autorelease();
 	ret->setTipFromID(tipID);
 	ret->onOk = ok;
@@ -43,9 +48,10 @@ bool ConfirmLayer::init()
 	{
 		btn = dynamic_cast<Button*>(layer->getChildByName("ok"));
 		btn->addTouchEventListener( std::bind(&ConfirmLayer::onBtnOk, this, placeholders::_1, placeholders::_2) );
-
+		showVividly(btn);
 		btn = dynamic_cast<Button*>(layer->getChildByName("cancel"));
 		btn->addTouchEventListener( std::bind(&ConfirmLayer::onBtnCancel, this, placeholders::_1, placeholders::_2) );
+		showVividly(btn);
 	}
 
 	m_pTipText = dynamic_cast<Text*>(layer->getChildByName("text"));

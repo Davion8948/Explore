@@ -38,3 +38,10 @@ cocos2d::Sequence* autoRemoveAction( cocos2d::Node* target, cocos2d::FiniteTimeA
 {
 	return Sequence::create( action1, CallFunc::create(std::bind(&Node::removeFromParent, target)), nullptr );
 }
+
+
+void showVividly( cocos2d::Node* node )
+{
+	node->setScale(0.5f);
+	node->runAction( Sequence::createWithTwoActions(ScaleTo::create(0.2f, 1.2f), ScaleTo::create(0.1f,1.0f)));
+}

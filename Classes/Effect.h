@@ -12,3 +12,8 @@ private:
 };
 
 cocos2d::Sequence* autoRemoveAction(cocos2d::Node* target, cocos2d::FiniteTimeAction* action1);
+
+/*
+ *	¨¨?UI????¡À?¦Ì?¨¦¨²?¡¥¨°?¦Ì?
+ */
+void showVividly(cocos2d::Node* node);

@@ -38,6 +38,18 @@ bool FinishLayer::init()
 		btn->addTouchEventListener( std::bind(&FinishLayer::onBtnShare, this, placeholders::_1, placeholders::_2) );
 	}
 
+	int ntime = max(0, 5-LevelData::inst().getElapsedTime()/15);
+	runAction(Repeat::create( CCCallFunc::create([=](){
+		auto delay = DelayTime::create(min(0.5f, rand()%100/100.0f));
+		runAction(Sequence::createWithTwoActions(delay, CallFunc::create([=](){
+			auto play = ParticleSystemQuad::create("winfire.plist");
+			Size win = Director::getInstance()->getWinSize();
+			int w = win.width-200;
+			int h = win.height-200;
+			play->setPosition(rand()%w+100, rand()%h+100);
+			addChild(play);
+		})));
+	}), ntime) );
 
 	return true;
 }

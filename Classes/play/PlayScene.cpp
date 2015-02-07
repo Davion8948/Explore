@@ -15,8 +15,8 @@ bool PlayScene::init()
 {
 	Return_False_If(!Scene::init());
 
-	SpriteFrameCache::getInstance()->addSpriteFramesWithFile("ocean.plist");
-	AnimationCache::getInstance()->addAnimationsWithFile("play_animations.plist");
+// 	SpriteFrameCache::getInstance()->addSpriteFramesWithFile("ocean.plist");
+// 	AnimationCache::getInstance()->addAnimationsWithFile("play_animations.plist");
 
 	int mLevel = m_intent["mLevel"].asInt();
 	int vLevel = m_intent["vLevel"].asInt();

@@ -29,5 +29,5 @@ extern GameMap* gamemap;
 class Toolbar;
 extern Toolbar* toolbar;
 
-static const int tw = 70;
-static const int th = 74;
+static const int tw = 68;
+static const int th = 70;

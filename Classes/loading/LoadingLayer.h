@@ -1,6 +1,8 @@
 #pragma once
 #include "loading/loading_shared.h"
 using namespace ui;
+#include "C2DXShareSDK/C2DXShareSDK.h"
+using namespace cn::sharesdk;
 
 typedef cocos2d::ui::Widget::TouchEventType TouchType;
 
@@ -33,6 +35,7 @@ private:
 	void onClickSlide(Ref *pSender, ui::Slider::EventType type);
 	void onClickWechat(Ref *target, TouchType type);
 	void onClickWeibo(Ref *target, TouchType type);
+	//void shareResultHandler(C2DXResponseState state, C2DXPlatType platType, __Dictionary *shareInfo, __Dictionary *error);
 	bool openSetting;//if open setting
 	bool openTrophy;
 	bool ifShowSlider;// volume slider

@@ -137,7 +137,7 @@ bool GameMap::initWithLevel( int mainLevel, int viceLevel )
 		Sprite* sp = Sprite::create("bound_bottom.png");
 		sp->setPosition(x, 0);
 		sp->setAnchorPoint(Point(0,1));
-		addChild(sp, order);
+		addChild(sp, order+1);
 
 		x += sp->getContentSize().width;
 
@@ -300,6 +300,11 @@ list<GameMap::Index2> GameMap::getPath( const Index2& from, const Index2& to )
 	}
 	if (!ret.empty())
 		ret.pop_front();
+
+	if (ret.size() > 10)
+	{
+		ret.clear();
+	}
 	return ret;
 }
 
@@ -324,7 +329,11 @@ void GameMap::onPlayerFinishOneStep( const Index2& index, MoveStatus ms )
 {
 	m_objects[index.first][index.second]->checkPlayerFinished(m_pPlayer);
 
-	if(ms != msFullyFinish)
+	if (GameStateMgr::inst().curState()==gs_win)
+	{
+		m_curPath.clear();
+	}
+	else if(ms != msFullyFinish)
 	{
 		m_curPath.clear();
 	}
