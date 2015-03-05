@@ -9,7 +9,7 @@ bool FinishLayer::init()
 {
 	Return_False_If(!Layer::init());
 
-	ui::Widget* finish = GUIReader::getInstance()->widgetFromJsonFile("eui/finish.json");
+	ui::Widget* finish = GUIReader::getInstance()->widgetFromJsonFile("eui/finish_1.ExportJson");//finish_1.ExportJson eui/finish.json
 	addChild(finish);
 	setContentSize(finish->getContentSize());
 
@@ -34,8 +34,8 @@ bool FinishLayer::init()
 		btn = dynamic_cast<Button*>(finish->getChildByName("next"));
 		btn->addTouchEventListener( std::bind(&FinishLayer::onBtnNextLevel, this, placeholders::_1, placeholders::_2) );
 
-		btn = dynamic_cast<Button*>(finish->getChildByName("share"));
-		btn->addTouchEventListener( std::bind(&FinishLayer::onBtnShare, this, placeholders::_1, placeholders::_2) );
+		//btn = dynamic_cast<Button*>(finish->getChildByName("share"));
+		//btn->addTouchEventListener( std::bind(&FinishLayer::onBtnShare, this, placeholders::_1, placeholders::_2) );
 	}
 
 	int ntime = max(0, 5-LevelData::inst().getElapsedTime()/15);
